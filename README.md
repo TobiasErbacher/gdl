@@ -9,6 +9,6 @@ The codebase is structured in the following directories:
 
 <Add codebase directory structure!>
 
-* **1**: Contains XYZ.
-* **2**: Contains XYZ.
-- **2.1**: Description ABC.
+- **1**: Contains XYZ.
+- **2**: Contains XYZ.
+  - **2.1**: Description ABC.
