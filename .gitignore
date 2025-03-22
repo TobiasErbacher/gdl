@@ -1,0 +1,5 @@
+replication/wandb
+.idea
+__pycache__/
+# Ignore saved models (they are on wandb)
+replication/models/model*
