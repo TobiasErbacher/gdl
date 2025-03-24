@@ -1,12 +1,15 @@
 import wandb
 import numpy as np
 
-from replication.constants import Dataset
+from replication.constants import Dataset, Model
 
 api = wandb.Api()
 
+# Choose the dataset and model for which the accuracy is calculated
 DATASET = Dataset.CITESEER
+MODEL = Model.SPINELLI
 
+# Not necessary to change this
 PROJECT_NAME = "AP-GCN/AP-GCN"
 NUMBER_SAMPLES = 1_000
 CONFIDENCE = 0.95
@@ -29,12 +32,12 @@ def bootstrap_confidence_interval(data, confidence, number_samples):
     return lower_percentile, mean, upper_percentile
 
 
-def calculate_average_accuracy(dataset_name):
-    tag_to_filter = dataset_name
+def calculate_average_accuracy(dataset_name, model_name):
     test_accuracies = []
 
     for run in api.runs(PROJECT_NAME):
-        if tag_to_filter in run.tags:
+        # Only consider runs with the given dataset and model
+        if dataset_name in run.tags and model_name in run.tags:
             if "test_accuracy" in run.summary:
                 test_accuracies.append(run.summary["test_accuracy"])
             else:
@@ -44,6 +47,7 @@ def calculate_average_accuracy(dataset_name):
 
 
 dataset_name = DATASET.value
-lower, mean, upper = calculate_average_accuracy(dataset_name)
+model_name = MODEL.value
+lower, mean, upper = calculate_average_accuracy(dataset_name, model_name)
 plus_minus = ((mean - lower) + (upper - mean)) / 2
 print(f"Dataset: {dataset_name}, lower: {lower}, mean: {mean}, upper: {upper}, plus_minus: {plus_minus}")

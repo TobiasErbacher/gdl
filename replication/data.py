@@ -29,9 +29,14 @@ def normalize_attributes(attr_matrix):
 
 
 def get_dataset(name: str, use_lcc: bool = True) -> InMemoryDataset:
+    """
+    :param name: The name of the dataset
+    :param use_lcc: Largest Connected Component
+    :return:
+    """
     dataset = InMemoryDataset
     graph = load_dataset(name)
-    graph.standardize(select_lcc=True)
+    graph.standardize(select_lcc=use_lcc)  # This was changed from =True to use_lcc by JK
     new_y = torch.LongTensor(graph.labels)
     data = Data(
         x=torch.FloatTensor(normalize_attributes(graph.attr_matrix).toarray()),

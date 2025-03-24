@@ -1,6 +1,7 @@
 # Run using python replicate --dataset=<name> --model=<name>
 # <name>=Citeseer|Cora-ML|PubMed|MS-Academic|A.Computer|A.Photo
-# <model>=spinelli
+# <model>=spinelli|mapping
+# See constants.py
 # Note: you must be logged in wandb
 # Trains 5 models for 20 seeds for the provided dataset and stores result in wandb
 
@@ -15,10 +16,9 @@ from tqdm import tqdm
 
 from replication.constants import Model, Dataset
 from replication.data import get_dataset, set_train_val_test_split
-from replication.model_and_layer_spinelli import APGCN
 from replication.seeds import gen_seeds, test_seeds
 
-device = "cpu"
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 
 def get_hyperparameters(dataset_name):
@@ -33,14 +33,16 @@ def get_hyperparameters(dataset_name):
     }
 
     # Dataset-specific propagation penalty (α)
-    if dataset_name == "Cora":
+    if dataset_name == Dataset.CORAML.value:
         params['prop_penalty'] = 0.005
-    elif dataset_name == "Citeseer":
+    elif dataset_name == Dataset.CITESEER.value:
         params['prop_penalty'] = 0.001
-    elif dataset_name == "PubMed":
+    elif dataset_name == Dataset.PUBMED.value:
         params['prop_penalty'] = 0.001
-    elif dataset_name.startswith("amazon"):
-        # amazon datasets use weight_decay=0 according to the authors code
+    elif dataset_name == Dataset.MSACADEMIC:
+        params['prop_penalty'] = 0.05
+    elif dataset_name == Dataset.APHOTO.value or dataset_name == Dataset.ACOMPUTER.value:
+        # amazon datasets use weight_decay=0 according to the author's paper and code
         params['weight_decay'] = 0
         params['prop_penalty'] = 0.05
     else:
@@ -61,6 +63,7 @@ def train(model, data, optimizer, train_halt=True, weight_decay=0.008):
     model.train()
 
     # the authors do this by optimizing each 5 epochs.
+    # TODO: WHY?
     for param in model.prop.parameters():
         param.requires_grad = train_halt
 
@@ -103,9 +106,9 @@ def evaluate(model, data, mask=None):
     return acc, avg_steps
 
 
-def train_model(dataset, hyperparams, best_model_path, epochs=10000, patience=100, halting_step=5):
+def train_model(dataset, hyperparams, best_model_path, ModelClass, epochs=10000, patience=100, halting_step=5):
     """Train the AP-GCN model with early stopping"""
-    model = APGCN(
+    model = ModelClass(
         dataset=dataset,
         niter=hyperparams['niter'],
         prop_penalty=hyperparams['prop_penalty'],
@@ -237,8 +240,11 @@ def main():
 
     hyperparameters = get_hyperparameters(dataset_name)
     dataset = get_dataset(dataset_name)
+    ModelClass = Model.get_model_class(model_name)
 
     seeds = test_seeds
+
+    print(f"Using device {device}")
 
     for seed in tqdm(seeds):
         for i in range(5):
@@ -261,7 +267,7 @@ def main():
 
             best_model_path = f'./models/{run_suffix}.pt'
 
-            train_model(dataset, hyperparameters, best_model_path)
+            train_model(dataset, hyperparameters, best_model_path, ModelClass)
 
             run.log_model(path=best_model_path, name=run_name)
 
