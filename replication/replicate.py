@@ -8,11 +8,11 @@
 import torch
 import torch.nn.functional as F
 import wandb
-from datetime import datetime
-
-import argparse
-
+import pandas as pd
 from tqdm import tqdm
+
+from datetime import datetime
+import argparse
 
 from replication.constants import Model, Dataset
 from replication.data import get_dataset, set_train_val_test_split
@@ -80,7 +80,7 @@ def train(model, data, optimizer, train_halt=True, weight_decay=0.008):
     loss.backward()
     optimizer.step()
 
-    return loss.item(), (steps + reminders).mean().item()
+    return loss.item(), steps.cpu().numpy()
 
 
 def evaluate(model, data, mask=None):
@@ -99,11 +99,7 @@ def evaluate(model, data, mask=None):
         total = mask.sum().item()
         acc = correct / total if total > 0 else 0
 
-        # average propagation steps
-        prop_cost = steps + reminders
-        avg_steps = prop_cost[mask].mean().item() if mask.sum() > 0 else 0
-
-    return acc, avg_steps
+    return acc, steps.cpu().numpy()
 
 
 def train_model(dataset, hyperparams, best_model_path, ModelClass, epochs=10000, patience=100, halting_step=5):
@@ -179,28 +175,43 @@ def train_model(dataset, hyperparams, best_model_path, ModelClass, epochs=10000,
             print(f"Early stopping after {epoch} epochs.")
             break
 
-        # progress printing.
-        if epoch % 10 == 0:
-            print(f"Epoch: {epoch:03d}, Loss: {train_loss:.4f}, Steps: {train_step:.2f}, Val Acc: {val_acc:.4f}")
-
         elapsed_time_ms = (end_time - start_time).total_seconds() * 1000
+
+        train_avg_steps = steps.mean()
+        train_min_steps = steps.min()
+        train_max_steps = steps.max()
+
+        val_avg_steps = val_step.mean()
+        val_min_steps = val_step.min()
+        val_max_steps = val_step.max()
+
+        if epoch % 10 == 0:
+            print(f"Epoch: {epoch:03d}, Loss: {train_loss:.4f}, Steps: {train_avg_steps:.2f}, Val Acc: {val_acc:.4f}")
 
         wandb.log({
             "train_loss": train_loss,
             "val_acc": val_acc,
-            "train_avg_steps": train_step,
-            "val_avg_steps": val_step,
+            "train_avg_steps": train_avg_steps,
+            "train_min_steps": train_min_steps,
+            "train_max_steps": train_max_steps,
+            "val_avg_steps": val_avg_steps,
+            "val_min_steps": val_min_steps,
+            "val_max_steps": val_max_steps,
             "training_time_epoch": elapsed_time_ms
         }, epoch)
 
     # Testing
     model.load_state_dict(torch.load(best_model_path))
     test_acc, test_step = evaluate(model, data, data.test_mask)
-    print(f"Test Accuracy: {test_acc:.4f}, Avg Steps: {test_step:.2f}")
+    print(f"Test Accuracy: {test_acc:.4f}, Avg Steps: {test_step.mean():.2f}")
+
+    # Log entire list of steps per node for the test evaluation
+    df = pd.DataFrame(test_step, columns=["step"])
+    df_json = df.to_json(orient="split")
 
     wandb.log({
         "test_accuracy": test_acc,
-        "test_avg_steps": test_step,
+        "test_steps": df_json,
     })
 
     return model

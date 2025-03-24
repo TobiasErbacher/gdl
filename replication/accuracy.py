@@ -1,3 +1,5 @@
+import pandas as pd
+
 import wandb
 import numpy as np
 
@@ -32,8 +34,9 @@ def bootstrap_confidence_interval(data, confidence, number_samples):
     return lower_percentile, mean, upper_percentile
 
 
-def calculate_average_accuracy(dataset_name, model_name):
+def calculate_average_accuracy_and_steps(dataset_name, model_name):
     test_accuracies = []
+    steps = []
 
     for run in api.runs(PROJECT_NAME):
         # Only consider runs with the given dataset and model
@@ -42,12 +45,20 @@ def calculate_average_accuracy(dataset_name, model_name):
                 test_accuracies.append(run.summary["test_accuracy"])
             else:
                 raise RuntimeError(f"Run {run} is missing test_accuracy summary statistic")
+            if "test_steps" in run.summary:
+                df_string = run.summary.get('test_steps')
+                df = pd.read_json(df_string, orient="split")
+                list = df['step'].tolist()
+                steps.append(list)
+            else:
+                raise RuntimeError(f"Run {run} is missing test_steps summary statistic")
 
-    return bootstrap_confidence_interval(test_accuracies, CONFIDENCE, NUMBER_SAMPLES)
+    return bootstrap_confidence_interval(test_accuracies, CONFIDENCE, NUMBER_SAMPLES), np.array(steps)
 
 
 dataset_name = DATASET.value
 model_name = MODEL.value
-lower, mean, upper = calculate_average_accuracy(dataset_name, model_name)
-plus_minus = ((mean - lower) + (upper - mean)) / 2
+(lower, mean, upper), steps = calculate_average_accuracy_and_steps(dataset_name, model_name)
+plus_minus = max(lower, upper)  # Like the authors do it in the AP-GCN_demo.ipynb
 print(f"Dataset: {dataset_name}, lower: {lower}, mean: {mean}, upper: {upper}, plus_minus: {plus_minus}")
+print(f"Steps per node: {steps}")

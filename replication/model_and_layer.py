@@ -1,5 +1,6 @@
 # Mostly from Jonathan/APGCN_WITH_PLOTS with some changes
 import math
+import numpy as np
 import torch
 from torch.nn import Dropout, Linear, ReLU, ModuleList
 from torch_geometric.nn import MessagePassing
@@ -61,7 +62,7 @@ class AdaptivePropagation(MessagePassing):
         prop = self.dropout(local_preds)
 
         # propagation loop
-        for _ in range(self.niter):
+        for i in range(self.niter):
             old_prop = prop  # h^(t-1)
 
             continue_fmask = continue_mask.float().to(local_preds.device)
@@ -88,8 +89,15 @@ class AdaptivePropagation(MessagePassing):
             prob_mask = (((sum_h + h) < 0.99) & continue_mask).squeeze()
             prob_fmask = prob_mask.float().to(local_preds.device)
 
+            # If we get to the last iteration we must not increase the number of steps
+            # This is different from the authors' code
+            if i == self.niter - 1:
+                last_iteration_mask = torch.zeros(sz).to(local_preds.device)
+            else:
+                last_iteration_mask = torch.ones(sz).to(local_preds.device)
+
             # we add another step for those nodes that continue and that the accum prob is lower than threshold.
-            steps = steps + prob_fmask
+            steps = steps + prob_fmask * last_iteration_mask
             sum_h = sum_h + prob_fmask * h  # and update the accumulation for those nodes that continue  (otherwise the prob mask takes 0 so no update. )
 
             final_iter = steps < self.niter
@@ -325,7 +333,7 @@ class AdaptivePropagationNoWeightedSum(MessagePassing):
         prop = self.dropout(local_preds)
 
         # propagation loop
-        for _ in range(self.niter):
+        for i in range(self.niter):
             old_prop = prop  # h^(t-1)
 
             continue_fmask = continue_mask.float().to(local_preds.device)
@@ -352,8 +360,15 @@ class AdaptivePropagationNoWeightedSum(MessagePassing):
             prob_mask = (((sum_h + h) < 0.99) & continue_mask).squeeze()
             prob_fmask = prob_mask.float().to(local_preds.device)
 
+            # If we get to the last iteration we must not increase the number of steps
+            # This is different from the authors' code
+            if i == self.niter - 1:
+                last_iteration_mask = torch.zeros(sz).to(local_preds.device)
+            else:
+                last_iteration_mask = torch.ones(sz).to(local_preds.device)
+
             # we add another step for those nodes that continue and that the accum prob is lower than threshold.
-            steps = steps + prob_fmask
+            steps = steps + prob_fmask * last_iteration_mask
             sum_h = sum_h + prob_fmask * h  # and update the accumulation for those nodes that continue  (otherwise the prob mask takes 0 so no update. )
 
             final_iter = steps < self.niter
