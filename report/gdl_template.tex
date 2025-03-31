@@ -16,59 +16,81 @@ Jonathan Bella, Tobias Erbacher, Jonas Knupp\\
 }
 
 \begin{abstract}
-Concise and self-contained description of your project, motivation and main findings.
+\textcolor{red}{Concise and self-contained description of your project, motivation and main findings.}
 
 % Delete the following part before submitting the report
 \begin{center}
     \sf\large\color{red} GENERAL NOTES
 \end{center}
 
-The report should be written as an article intended to present the findings of your work. Your aim should be to be clear and objective, substantiating your claims with references or empirical/theoretical evidence.
+\textcolor{red}{The report should be written as an article intended to present the findings of your work. Your aim should be to be clear and objective, substantiating your claims with references or empirical/theoretical evidence.
 We are well aware of the fact that carrying out machine learning experiments might be difficult and that often the final performance might be disappointing. For this reason, you will not be evaluated solely on quantitative aspect of your work, but mainly on the quality of your analysis and report.
-The length of the report should be between 4 and 8 pages (without considering references).
+The length of the report should be between 4 and 8 pages (without considering references).}
+
 \end{abstract}
 
 \maketitle
 
 \section{Introduction}
 
-Here you should clarify the context of your project and the problem you are dealing with. You should also make a brief summary of the main results and contributions (i.e., if you tried to replicate the results of an existing paper you should say if you were successful or not). The introduction should help the reader to follow along for the rest of the paper.
+\textcolor{red}{Here you should clarify the context of your project and the problem you are dealing with. You should also make a brief summary of the main results and contributions (i.e., if you tried to replicate the results of an existing paper you should say if you were successful or not). The introduction should help the reader to follow along for the rest of the paper.}
 
+This work is a replication study for the paper "Adaptive Propagation Graph Convolutional Network" by Spinelli et al. \cite{spinelli2021}. [Confirm that their results hold if they do]. Furthermore, we implemented and evaluated several different approaches for allowing an individual number of message passing steps per node. [Very briefly mention/explain these approaches and tell how results are in comparison with Spinelli]. 
 
 \section{Related works}
 
-Give a brief summary of (some) existing methods that are related to you project. For instance, you can refer to~\citet{gilmer2017neural}, or simply~\cite{gilmer2017neural}, for introducing Message Passing Neural Networks. In this section it is important to provide readers references to the current state of the art and the foundations of the presented method. 
+\textcolor{red}{Give a brief summary of (some) existing methods that are related to you project. For instance, you can refer to~\citet{gilmer2017neural}, or simply~\cite{gilmer2017neural}, for introducing Message Passing Neural Networks. In this section it is important to provide readers references to the current state of the art and the foundations of the presented method. 
+N.B.: When referencing a different approach, it is not necessary to provide a detailed description, only one/two brief sentences are enough. The interested readers can eventually read the referenced work. }
 
-N.B.: When referencing a different approach, it is not necessary to provide a detailed description, only one/two brief sentences are enough. The interested readers can eventually read the referenced work. 
+
+The main contribution of Spinelli et al. is the introduction of the Adaptive Propagation Graph Convolutional Network (AP-GCN) which enables each node to have an individual number of message passing steps.
+
+Xu et al. \cite{xu2018} introduced Jumping Knowledge Networks which perform a fixed number of message passes for all nodes and then use per-node LSTM attention to calculate the weighted average over the hidden vectors of the message passing rounds.   
+
+Liu et al. \cite{liu2019} presented GeniePath networks which not only use an attention mechanism to weight the contribution of neighboring nodes but also rely on an LSTM-like gating mechanism that controls the flow of information from one message passing step to the next. In principle, GeniePath networks can learn to stop propagating information individually for each node.
+
+Banino et al. \cite{banino2021} proposed the PonderNet architecture, which dynamically adjusts its computational effort based on the complexity of the given problem. While the authors do not explicitly discuss PonderNet in the context of GNNs, the architecture itself is adaptable to various neural network designs.
+
+Lai et al. \cite{lai2020} presented Policy-GNN which consists of two modules: a meta-policy module that relies on Deep Q-Learning predicts the required number of message passing steps per node and a GNN module that uses the meta-policy to learn graph representations.
+
+Finkelshtein et al. \cite{finkelshtein2024} introduced Cooperative Graph Neural Networks (CO-GNNs) where nodes are in one of the states Standard, Listen, Broadcast, or Isolate. The message-passing behavior of each node is governed by its current state. Nodes in the Isolate state neither send nor receive messages, effectively halting their participation in the propagation process — a situation similar to the halting mechanism in AP-GCN.
 
 \section{Methodology}
 
+\textcolor{red}{
 \textit{You can change the name of this section as you see fit.}\\
-In this section you should give a description of the methodological aspects of your work, for instance how you modified an existing method to perform a particular task or to overcome a particular limitation. If your project is about reproducibility, here you should describe the method presented in the original paper.
+In this section you should give a description of the methodological aspects of your work, for instance how you modified an existing method to perform a particular task or to overcome a particular limitation. If your project is about reproducibility, here you should describe the method presented in the original paper.}
+
+In this section we describe the AP-GCN by Spinelli et al. Furthermore, we introduce alternative architectures that allow each node to dynamically adjust its number of message passing steps.
+
+\subsection{AP-GCN}
+
+\section{Graph PonderNet}
+
+\section{RL}
 
 \section{Implementation}
 
+\textcolor{red}{
 This section should be structured as follows (from the Reproducibility challenge template):
-
 ---
-
-Briefly describe what you did and which resources did you use. E.g. Did you use author's code, did you re-implement parts of the pipeline, how much time did it take to produce the results, what hardware you were using and how long it took to train/evaluate. 
+Briefly describe what you did and which resources did you use. E.g. Did you use author's code, did you re-implement parts of the pipeline, how much time did it take to produce the results, what hardware you were using and how long it took to train/evaluate. }
 
 \subsection{Datasets}
-Describe the datasets you used and how you obtained them. 
+\textcolor{red}{Describe the datasets you used and how you obtained them. }
 
 \subsection{Hyperparameters}
-Describe how you set the hyperparameters and what was the source for their value (e.g. paper, code or your guess). 
+\textcolor{red}{Describe how you set the hyperparameters and what was the source for their value (e.g. paper, code or your guess). }
 
 \subsection{Experimental setup}
-Explain how you ran your experiments, e.g. the CPU/GPU resources and provide the link to your code and notebooks.
+\textcolor{red}{Explain how you ran your experiments, e.g. the CPU/GPU resources and provide the link to your code and notebooks.}
 
 \subsection{Computational requirements}
-Provide information on computational requirements for each of your experiments. For example, the number of CPU/GPU hours and memory requirements. You'll need to think about this ahead of time, and write your code in a way that captures this information so you can later add it to this section. 
+\textcolor{red}{Provide information on computational requirements for each of your experiments. For example, the number of CPU/GPU hours and memory requirements. You'll need to think about this ahead of time, and write your code in a way that captures this information so you can later add it to this section. }
 
 \section{Results}
 
-In this section you should report the results of your work (e.g., the outcome of an empirical analysis). You should be objective and support your statements with empirical evidence.
+\textcolor{red}{In this section you should report the results of your work (e.g., the outcome of an empirical analysis). You should be objective and support your statements with empirical evidence.}
 
 \begin{table}[h]
 \small\sf\centering
@@ -90,9 +112,9 @@ Use figures, plots and tables (like \autoref{tab:table}) to present your results
 
 \section{Discussion and conclusion}
 
-Here you can express your judgments and draw your conclusions based on the  evidences produced on the previous sections.
+\textcolor{red}{Here you can express your judgments and draw your conclusions based on the  evidences produced on the previous sections.
+Try to summarize the achievements of your project and its limits, suggesting (when appropriate) possible extensions and future works.}
 
-Try to summarize the achievements of your project and its limits, suggesting (when appropriate) possible extensions and future works.
 
 % Bibliography
 \bibliography{bibliography}

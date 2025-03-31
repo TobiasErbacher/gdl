@@ -6,3 +6,107 @@
   year={2017},
   organization={PMLR}
 }
+
+@ARTICLE{spinelli2021,
+  author={Spinelli, Indro and Scardapane, Simone and Uncini, Aurelio},
+  journal={IEEE Transactions on Neural Networks and Learning Systems}, 
+  title={Adaptive Propagation Graph Convolutional Network}, 
+  year={2021},
+  volume={32},
+  number={10},
+  pages={4755-4760},
+  keywords={Laplace equations;Convolutional codes;Protocols;Neural networks;Learning systems;Adaptive systems;Adaptation models;Convolutional network;graph data;graph neural network (GNN);node classification},
+  doi={10.1109/TNNLS.2020.3025110}}
+
+
+@InProceedings{xu2018,
+  title = 	 {Representation Learning on Graphs with Jumping Knowledge Networks},
+  author =       {Xu, Keyulu and Li, Chengtao and Tian, Yonglong and Sonobe, Tomohiro and Kawarabayashi, Ken-ichi and Jegelka, Stefanie},
+  booktitle = 	 {Proceedings of the 35th International Conference on Machine Learning},
+  pages = 	 {5453--5462},
+  year = 	 {2018},
+  editor = 	 {Dy, Jennifer and Krause, Andreas},
+  volume = 	 {80},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {10--15 Jul},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v80/xu18c/xu18c.pdf},
+  url = 	 {https://proceedings.mlr.press/v80/xu18c.html},
+  abstract = 	 {Recent deep learning approaches for representation learning on graphs follow a neighborhood aggregation procedure. We analyze some important properties of these models, and propose a strategy to overcome those. In particular, the range of "neighboring" nodes that a node’s representation draws from strongly depends on the graph structure, analogous to the spread of a random walk. To adapt to local neighborhood properties and tasks, we explore an architecture – jumping knowledge (JK) networks – that flexibly leverages, for each node, different neighborhood ranges to enable better structure-aware representation. In a number of experiments on social, bioinformatics and citation networks, we demonstrate that our model achieves state-of-the-art performance. Furthermore, combining the JK framework with models like Graph Convolutional Networks, GraphSAGE and Graph Attention Networks consistently improves those models’ performance.}
+}
+
+@article{liu2019,
+	abstractnote = {&lt;p&gt;We present, GeniePath, a scalable approach for learning adaptive receptive fields of neural networks defined on permutation invariant graph data. In GeniePath, we propose an adaptive path layer consists of two complementary functions designed for breadth and depth exploration respectively, where the former learns the importance of different sized neighborhoods, while the latter extracts and filters signals aggregated from neighbors of different hops away. Our method works in both transductive and inductive settings, and extensive experiments compared with competitive methods show that our approaches yield state-of-the-art results on large graphs.&lt;/p&gt;},
+	author = {Liu, Ziqi and Chen, Chaochao and Li, Longfei and Zhou, Jun and Li, Xiaolong and Song, Le and Qi, Yuan},
+	doi = {10.1609/aaai.v33i01.33014424},
+	journal = {Proceedings of the AAAI Conference on Artificial Intelligence},
+	month = {Jul.},
+	number = {01},
+	pages = {4424-4431},
+	title = {GeniePath: Graph Neural Networks with Adaptive Receptive Paths},
+	url = {https://ojs.aaai.org/index.php/AAAI/article/view/4354},
+	volume = {33},
+	year = {2019},
+	bdsk-url-1 = {https://ojs.aaai.org/index.php/AAAI/article/view/4354},
+	bdsk-url-2 = {https://doi.org/10.1609/aaai.v33i01.33014424}}
+
+
+@inproceedings{ma2021,
+  author = {Ma, Xiaojun and Wang, Junshan and Chen, Hanyue and Song, Guojie},
+  title = {Improving Graph Neural Networks with Structural Adaptive Receptive Fields},
+  year = {2021},
+  isbn = {9781450383127},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3442381.3449896},
+  doi = {10.1145/3442381.3449896},
+  abstract = {The abundant information in graphs helps us to learn more expressive node representations. Different nodes in the neighborhood have different importance to the central node. Thus, average weight aggregation in most Graph Neural Networks would fail to model such difference. GAT-based models introduce the attention mechanism to solve this problem, but they ignore the rich structural information and may suffer from the problem of over-smoothing. In this paper, we propose Graph Neural Networks with STructural Adaptive Receptive fields (STAR-GNN), which adaptively construct a receptive field for each node with structural information and further achieve better aggregation of information. Firstly, we model local structural distribution based on anonymous random walks, followed by using the structural information to construct receptive fields guided with mutual information. Then, as the generated receptive fields are irregular, we design a sub-graph aggregator to boost node representations and theoretically prove that it has the ability to capture the complex structures in receptive fields. Experimental results demonstrate the power of STAR-GNN in learning structural receptive fields adaptively and encoding more informative structural characteristics in real-world networks.},
+  booktitle = {Proceedings of the Web Conference 2021},
+  pages = {2438-2447},
+  numpages = {10},
+  keywords = {graph neural networks, mutual information, receptive fields},
+  location = {Ljubljana, Slovenia},
+  series = {WWW '21}
+}
+
+@misc{banino2021,
+      title={PonderNet: Learning to Ponder}, 
+      author={Andrea Banino and Jan Balaguer and Charles Blundell},
+      year={2021},
+      eprint={2107.05407},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2107.05407}, 
+      note={8th ICML Workshop on Automated Machine Learning (AutoML 2021)}
+}
+
+@inproceedings{lai2020,
+  author = {Lai, Kwei-Herng and Zha, Daochen and Zhou, Kaixiong and Hu, Xia},
+  title = {Policy-GNN: Aggregation Optimization for Graph Neural Networks},
+  year = {2020},
+  isbn = {9781450379984},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3394486.3403088},
+  doi = {10.1145/3394486.3403088},
+  abstract = {Graph data are pervasive in many real-world applications. Recently, increasing attention has been paid on graph neural networks (GNNs), which aim to model the local graph structures and capture the hierarchical patterns by aggregating the information from neighbors with stackable network modules. Motivated by the observation that different nodes often require different iterations of aggregation to fully capture the structural information, in this paper, we propose to explicitly sample diverse iterations of aggregation for different nodes to boost the performance of GNNs. It is a challenging task to develop an effective aggregation strategy for each node, given complex graphs and sparse features. Moreover, it is not straightforward to derive an efficient algorithm since we need to feed the sampled nodes into different number of network layers. To address the above challenges, we propose Policy-GNN, a meta-policy framework that models the sampling procedure and message passing of GNNs into a combined learning process. Specifically, Policy-GNN uses a meta-policy to adaptively determine the number of aggregations for each node. The meta-policy is trained with deep reinforcement learning~(RL) by exploiting the feedback from the model. We further introduce parameter sharing and a buffer mechanism to boost the training efficiency. Experimental results on three real-world benchmark datasets suggest that Policy-GNN significantly outperforms the state-of-the-art alternatives, showing the promise in aggregation optimization for GNNs.},
+  booktitle = {Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining},
+  pages = {461–471},
+  numpages = {11},
+  keywords = {node classification, meta-policy learning, graph neural networks, deep reinforcement learning, Markov decision process},
+  location = {Virtual Event, CA, USA},
+  series = {KDD '20}
+}
+
+@inproceedings{finkelshtein2024,
+  author = {Finkelshtein, Ben and Huang, Xingyue and Bronstein, Michael and Ceylan, İsmail İlkan},
+  title = {Cooperative graph neural networks},
+  year = {2024},
+  publisher = {JMLR.org},
+  abstract = {Graph neural networks are popular architectures for graph machine learning, based on iterative computation of node representations of an input graph through a series of invariant transformations. A large class of graph neural networks follow a standard message-passing paradigm: at every layer, each node state is updated based on an aggregate of messages from its neighborhood. In this work, we propose a novel framework for training graph neural networks, where every node is viewed as a player that can choose to either 'listen', 'broadcast', 'listen and broadcast', or to 'isolate'. The standard message propagation scheme can then be viewed as a special case of this framework where every node 'listens and broadcasts' to all neighbors. Our approach offers a more flexible and dynamic message-passing paradigm, where each node can determine its own strategy based on their state, effectively exploring the graph topology while learning. We provide a theoretical analysis of the new message-passing scheme which is further supported by an extensive empirical analysis on synthetic and real-world data.},
+  booktitle = {Proceedings of the 41st International Conference on Machine Learning},
+  articleno = {546},
+  numpages = {27},
+  location = {Vienna, Austria},
+  series = {ICML'24}
+}
