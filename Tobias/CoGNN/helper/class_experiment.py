@@ -14,7 +14,7 @@ from class_actionnetargs import ActionNetArgs
 from class_activationtype import ActivationType
 from class_metric_lam import LossesAndMetrics
 from utils.seed import set_seed
-from class_datasetbysplit import DatasetBySplit
+from class_dataset import DatasetBySplit
 from class_cognn import CoGNN
 
 class Experiment(object):
