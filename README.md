@@ -9,6 +9,15 @@ The codebase is structured in the following directories:
 
 <Add codebase directory structure!>
 
-- **1**: Contains XYZ.
-- **2**: Contains XYZ.
-  - **2.1**: Description ABC.
+## ./replication
+
+First you must log-in in wandb: `wandb login`. The `replicate.py` will use the `AP-GCN` wandb project.
+
+Run `replicate.py` with the following arguments. Note that `number of propagation penalties` times 100 runs are created in wandb.
+
+* --dataset=Citeseer --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=Cora-ML --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=PubMed --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=MS-Academic --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=A.Computer --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=A.Photo --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001

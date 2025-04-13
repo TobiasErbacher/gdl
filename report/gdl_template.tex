@@ -4,6 +4,9 @@
 \def\groupid{BEK}
 \def\projectid{AP-GCN}
 
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+
 \begin{document}
 
 % CHANGE THIS
@@ -37,6 +40,8 @@ The length of the report should be between 4 and 8 pages (without considering re
 
 This work is a replication study for the paper "Adaptive Propagation Graph Convolutional Network" by Spinelli et al. \cite{spinelli2021}. [Confirm that their results hold if they do]. Furthermore, we implemented and evaluated several different approaches for allowing an individual number of message passing steps per node. [Very briefly mention/explain these approaches and tell how results are in comparison with Spinelli]. 
 
+Our code is available on GitHub\footnote{\url{https://github.com/TobiasErbacher/gdl}}.
+
 \section{Related works}
 
 \textcolor{red}{Give a brief summary of (some) existing methods that are related to you project. For instance, you can refer to~\citet{gilmer2017neural}, or simply~\cite{gilmer2017neural}, for introducing Message Passing Neural Networks. In this section it is important to provide readers references to the current state of the art and the foundations of the presented method. 
@@ -49,9 +54,11 @@ Xu et al. \cite{xu2018} introduced Jumping Knowledge Networks which perform a fi
 
 Liu et al. \cite{liu2019} presented GeniePath networks which not only use an attention mechanism to weight the contribution of neighboring nodes but also rely on an LSTM-like gating mechanism that controls the flow of information from one message passing step to the next. In principle, GeniePath networks can learn to stop propagating information individually for each node.
 
+Lai et al. \cite{lai2020} presented Policy-GNN which consists of two modules: a meta-policy module that relies on Deep Q-Learning predicts the required number of message passing steps per node and a GNN module that uses the meta-policy to learn graph representations.
+
 Banino et al. \cite{banino2021} proposed the PonderNet architecture, which dynamically adjusts its computational effort based on the complexity of the given problem. While the authors do not explicitly discuss PonderNet in the context of GNNs, the architecture itself is adaptable to various neural network designs.
 
-Lai et al. \cite{lai2020} presented Policy-GNN which consists of two modules: a meta-policy module that relies on Deep Q-Learning predicts the required number of message passing steps per node and a GNN module that uses the meta-policy to learn graph representations.
+Xiao et al. \cite{xiao2021} presented the Learning to Propagate (L2P) framework. They use a latent discrete variable for each node that represents its optimal number of message passing steps. These variables are learned using variational Expectation-Maximization.
 
 Finkelshtein et al. \cite{finkelshtein2024} introduced Cooperative Graph Neural Networks (CO-GNNs) where nodes are in one of the states Standard, Listen, Broadcast, or Isolate. The message-passing behavior of each node is governed by its current state. Nodes in the Isolate state neither send nor receive messages, effectively halting their participation in the propagation process — a situation similar to the halting mechanism in AP-GCN.
 
@@ -64,10 +71,41 @@ In this section you should give a description of the methodological aspects of y
 In this section we describe the AP-GCN by Spinelli et al. Furthermore, we introduce alternative architectures that allow each node to dynamically adjust its number of message passing steps.
 
 \subsection{AP-GCN}
+In traditional message-passing-based graph neural networks, the number of propagation steps is identical for all nodes in the graph. This uniformity implies that each node aggregates information from its neighbors through a fixed number of iterations, regardless of its individual characteristics or position within the graph structure. Spinelli et al. focus on the case where the message-passing is implemented by a Graph Convolution Network (GCN) \cite{kipf2017}. However, their approach is not limited to GCNs. The proposed adaptive propagation GCN (AP-GCN) allows each node in the graph to have an individual number of message passing iterations. 
 
-\section{Graph PonderNet}
+A classifier is added to each node that predicts based on the hidden embedding after $k$ message-passing iterations whether the propagation should halt. The output of the classifer, $h^k_i$, is the probability the propagation should stop for node $i$ after iteration $k$.
 
-\section{RL}
+$$ h^k_i = \sigma(\textbf{Q}\textbf{z}^k_i + q) $$
+
+\noindent $\textbf{Q}$ and $q$ are trainable parameters and are shared between all nodes. There are two ways the propagation can stop. Firstly, the propagation stops if the number of propagations reaches a predefined maximum number of allowed steps $T$. Secondly, the propagation stops when the propagation budget has been used up. The budget is defined as $1-\epsilon$ where $\epsilon$ is a hyperparameter set a small value. When $k=K_i$ the budget for node $i$ has been reached after $k$ iterations and the propagation stops. 
+
+$$ K_i = \argmin_{k' \in \{1, 2, ..., T\}} \sum_{k=1}^{k'} h_i^k \geq 1-\epsilon $$
+
+\noindent Knowing when the propagation stops allows us to define a cumulative distribution for the halting probabilities. TODO: are we sure about this (Remainder)?
+
+\[
+    p_i^k = 
+    \begin{cases}
+    R_i = 1 - \sum_{k=1}^{K_i - 1} h_i^k & \text{if } k = K_i \text{ or } k = T \\
+    \frac{h_i^k}{\sum_{k=1}^{K_i} h_i^k} & \text{otherwise}
+    \end{cases}
+\]
+
+\noindent The output of the AP-GCN message-passing layer for node $i$ is $\hat{\bf{z}}_i$. TODO: Why do we do this
+
+$$ \hat{\bf{z}}_i = \frac{1}{K_i} \sum_{k=1}^{K_i} p_i^k \bf{z}^k_i + (1-p^k_i) \bf{z}_i^{k-1} $$
+
+\noindent The propagation cost $\mathcal{S}_i$ for node $i$ is given by the sum of $K_i$ and $R_i$. Adding $\mathcal{S}_i$ to the loss term incentivizes the model to choose a limited number of propagation steps for node $i$. The propagation penalty $\alpha$ controls the trade-off between accuracy and compute time. A larger $\alpha$ encourages the model to restrict the number of propagation steps per node, whereas a smaller $\alpha$ allows for deeper message passing, potentially improving accuracy at the cost of increased computation. Spinelli et al. decided to update the halting unit once every five steps. 
+
+$$ \mathcal{\hat{L}} = \mathcal{L} + \alpha \sum_{i\in \mathcal{V}} \mathcal{S}_i $$
+
+
+\subsection{Graph PonderNet}
+
+\subsection{RL}
+
+
+\subsection{Cooperative Graph Neural Networks}
 
 \section{Implementation}
 
@@ -76,17 +114,30 @@ This section should be structured as follows (from the Reproducibility challenge
 ---
 Briefly describe what you did and which resources did you use. E.g. Did you use author's code, did you re-implement parts of the pipeline, how much time did it take to produce the results, what hardware you were using and how long it took to train/evaluate. }
 
+We independently implemented AP-GCN and compared our implementation with the reference code provided by Spinelli et al., available on their GitHub repository\footnote{\url{https://github.com/spindro/AP-GCN}}. We found that in cases where nodes reach the maximum propagation limit $T$ and are eligible to propagate further, the implementation by Spinelli et al. incorrectly reports one additional step, resulting in an off-by-one error. Importantly, the implementation does not actually perform an extra propagation step—it only misreports the number of steps taken.
+
+For the loading of the \texttt{Citeseer}, \texttt{Cora-ML}, \texttt{PubMed}, \texttt{MS-Academic}, \texttt{A. Computer}, and \texttt{A. Photo} datasets we used the code provided by Spinelli et al.
+
 \subsection{Datasets}
 \textcolor{red}{Describe the datasets you used and how you obtained them. }
+
+We downloaded the \texttt{Citeseer} \cite{sen2008}, \texttt{Cora-ML} \cite{mccallum2000}, \texttt{PubMed} \cite{namata2012}, \texttt{MS-Academic} \cite{shchur2018}, \texttt{A. Computer}, and \texttt{A. Photo} datasets from the GitHub repository of Spinelli et al. along with the code to load them. The \texttt{A. Computer} and \texttt{A. Photo} datasets are portions of the Amazon co-purchase graph originally presented in \cite{mcauley2015}. In the \texttt{Microsoft Academic} dataset, the edges represent co-authorship while in the \texttt{Citeseer}, \texttt{Cora-ML}, and \texttt{PubMed} datasets, the edges represent citations. All these datasets consists of a single graph and are node classification problems. Only the largest connected component in each dataset is used. The features are bag of words representations of the papers' abstracts. 
 
 \subsection{Hyperparameters}
 \textcolor{red}{Describe how you set the hyperparameters and what was the source for their value (e.g. paper, code or your guess). }
 
+For the experiments with AP-GCN we used the hyperparameters described by Spinelli et al. They are described in appendix \ref{lab:hyper-ap-gcn}.
+
 \subsection{Experimental setup}
 \textcolor{red}{Explain how you ran your experiments, e.g. the CPU/GPU resources and provide the link to your code and notebooks.}
 
+We follow the experimental setup of Spinelli et al., splitting each dataset into training, validation, and test sets. The validation set is used to detect early stopping, while the test set serves to evaluate the final model performance. For each dataset, we use 20 random seeds, and for each seed, the model is trained five times with different weight initializations, resulting in 100 trained models per dataset for a fixed set of hyperparameters.
+
 \subsection{Computational requirements}
 \textcolor{red}{Provide information on computational requirements for each of your experiments. For example, the number of CPU/GPU hours and memory requirements. You'll need to think about this ahead of time, and write your code in a way that captures this information so you can later add it to this section. }
+
+The experiments were conducted on a MacBook Pro with Apple M2 Pro Chip and 16 GB of memory. We used the \texttt{mps} backend of PyTorch.
+
 
 \section{Results}
 
@@ -110,6 +161,16 @@ Methods & MAE & MSE\\
 
 Use figures, plots and tables (like \autoref{tab:table}) to present your results in a nice and readable way.
 
+We report the results of our experiments with the AP-GCN, Graph PonderNet, RL, and CoGNN architecture.
+
+\subsection{AP-GCN}
+
+\subsection{Graph PonderNet}
+
+\subsection{RL}
+
+\subsection{Cooperative Graph Neural Networks}
+
 \section{Discussion and conclusion}
 
 \textcolor{red}{Here you can express your judgments and draw your conclusions based on the  evidences produced on the previous sections.
@@ -120,5 +181,14 @@ Try to summarize the achievements of your project and its limits, suggesting (wh
 \bibliography{bibliography}
 \bibliographystyle{unsrtnat}
 \clearpage
+
+\appendix
+
+\section{Hyperparameters}
+
+\subsection{AP-GCN}
+\label{lab:hyper-ap-gcn}
+We use 2 feature transformation layers, a dropout rate of 0.5, 64 hidden units, and the Adam optimizer with learning rate 0.01. The maximum number of steps $T$ was set to 10. We applied $L2$ regularization with coefficient 0.008 on the parameters of the first layer. For the \texttt{A. Photo} and \texttt{A. Computer} no regularization was used.
+
 
 \end{document}
