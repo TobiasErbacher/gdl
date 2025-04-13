@@ -2,7 +2,7 @@ from typing import NamedTuple, Callable
 from torch.nn import Linear, Dropout, ModuleList, Sequential
 from class_model import ModelType
 from class_activationtype import ActivationType
-from Project.gdl.Tobias.CoGNN.helper.class_encoder import PosEncoder, DataSetEncoders
+from class_encoder import PosEncoder, DataSetEncoders
 from class_metric import MetricType
 from class_concat2node import Concat2NodeEncoder
 
