@@ -3,7 +3,7 @@ __pycache__/
 .DS_Store
 
 # Ignore saved models (they are on wandb)
-replication/models/*.pt
+replication/saved_models/*.pt
 replication/wandb
 replication/.ipynb_checkpoints
 

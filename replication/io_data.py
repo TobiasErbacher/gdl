@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import scipy.sparse as sp
 from os.path import join
-from sparsegraph import SparseGraph
+from replication.sparsegraph import SparseGraph
 
 data_dir = join(Path(__file__).parent, "data")
 

@@ -7,8 +7,9 @@ import numpy as np
 
 import torch
 from torch_geometric.data import Data, InMemoryDataset
-from io_data import load_dataset
-from seeds import development_seed
+
+from replication.io_data import load_dataset
+from replication.seeds import development_seed
 import scipy.sparse as sp
 import scipy.sparse.linalg as spla
 

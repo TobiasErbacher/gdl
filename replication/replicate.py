@@ -26,26 +26,26 @@ def get_hyperparameters(dataset_name):
     """hyperparameters from the paper"""
     # default
     params = {
-        'hidden': [64],
-        'dropout': 0.5,
-        'niter': 10,  # maximum number of MP iterations (T)
-        'learning_rate': 0.01,
-        'weight_decay': 0.008
+        "hidden": [64],
+        "dropout": 0.5,
+        "niter": 10,  # maximum number of MP iterations (T)
+        "learning_rate": 0.01,
+        "weight_decay": 0.008
     }
 
     # Dataset-specific propagation penalty (α)
-    if dataset_name == Dataset.CORAML.value:
-        params['prop_penalty'] = 0.005
-    elif dataset_name == Dataset.CITESEER.value:
-        params['prop_penalty'] = 0.001
-    elif dataset_name == Dataset.PUBMED.value:
-        params['prop_penalty'] = 0.001
-    elif dataset_name == Dataset.MSACADEMIC:
-        params['prop_penalty'] = 0.05
-    elif dataset_name == Dataset.APHOTO.value or dataset_name == Dataset.ACOMPUTER.value:
+    if dataset_name == Dataset.CORAML.label:
+        params["prop_penalty"] = 0.005
+    elif dataset_name == Dataset.CITESEER.label:
+        params["prop_penalty"] = 0.001
+    elif dataset_name == Dataset.PUBMED.label:
+        params["prop_penalty"] = 0.001
+    elif dataset_name == Dataset.MSACADEMIC.label:
+        params["prop_penalty"] = 0.05
+    elif dataset_name == Dataset.APHOTO.label or dataset_name == Dataset.ACOMPUTER.label:
         # amazon datasets use weight_decay=0 according to the author's paper and code
-        params['weight_decay'] = 0
-        params['prop_penalty'] = 0.05
+        params["weight_decay"] = 0
+        params["prop_penalty"] = 0.05
     else:
         raise RuntimeError("Invalid dataset name")
 
@@ -107,15 +107,15 @@ def train_model(dataset, hyperparams, best_model_path, ModelClass, epochs=10000,
     """Train the AP-GCN model with early stopping"""
     model = ModelClass(
         dataset=dataset,
-        niter=hyperparams['niter'],
-        prop_penalty=hyperparams['prop_penalty'],
-        hidden=hyperparams['hidden'],
-        dropout=hyperparams['dropout']
+        niter=hyperparams["niter"],
+        prop_penalty=hyperparams["prop_penalty"],
+        hidden=hyperparams["hidden"],
+        dropout=hyperparams["dropout"]
     ).to(device)
 
     optimizer = torch.optim.Adam(
         model.parameters(),
-        lr=hyperparams['learning_rate']
+        lr=hyperparams["learning_rate"]
     )
 
     # variables
@@ -135,7 +135,7 @@ def train_model(dataset, hyperparams, best_model_path, ModelClass, epochs=10000,
         start_time = datetime.now()
 
         # following the authors approach of training the halting unit every 5 epochs
-        train_loss, train_step = train(model, data, optimizer, epoch % halting_step == 0, hyperparams['weight_decay'])
+        train_loss, train_step = train(model, data, optimizer, epoch % halting_step == 0, hyperparams["weight_decay"])
 
         end_time = datetime.now()
 
@@ -200,7 +200,7 @@ def train_model(dataset, hyperparams, best_model_path, ModelClass, epochs=10000,
 def validate_input(dataset_name, model_name):
     is_good_dataset = False
     for dataset in Dataset:
-        if dataset_name == dataset.value:
+        if dataset_name == dataset.label:
             is_good_dataset = True
             break
 
@@ -209,7 +209,7 @@ def validate_input(dataset_name, model_name):
 
     is_good_model = False
     for model in Model:
-        if model_name == model.value:
+        if model_name == model.label:
             is_good_model = True
             break
 
@@ -220,7 +220,7 @@ def validate_input(dataset_name, model_name):
 def main():
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--dataset", type=str, help="The dataset name")
-    parser.add_argument("--model", default=Model.SPINELLI.value, type=str, help="The model name")
+    parser.add_argument("--model", default=Model.SPINELLI.label, type=str, help="The model name")
     parser.add_argument("--prop-penalties", type=float, nargs="+", help="The list of propagation penalties (alphas) to run")
     parser.add_argument("--store-models", default=False, type=bool, help="Whether models should be stored in wandb")
 
@@ -252,9 +252,9 @@ def main():
         for index, seed in tqdm(enumerate(seeds)):
             for i in range(5):
                 run_suffix = f"{model_name}_{dataset_name}_{prop_penalty}_{seed}_{i}"
-                date_time = datetime.now().strftime('%H-%M-%S_%d-%m-%Y')
+                date_time = datetime.now().strftime("%H-%M-%S_%d-%m-%Y")
                 run_name = f"run_{run_suffix}_{date_time}"
-                run = wandb.init(project="AP-GCN", name=run_name, tags=[dataset_name, str(seed), model_name, str(prop_penalty)],
+                run = wandb.init(project=model_name, name=run_name, tags=[dataset_name, str(seed), model_name, str(prop_penalty)],
                                  reinit=True)
 
                 torch_seed = gen_seeds()
@@ -264,11 +264,11 @@ def main():
                 dataset.data = set_train_val_test_split(
                     seed,
                     dataset.data,
-                    num_development=1500,
+                    num_development=Dataset.from_label(dataset_name).num_development,
                     num_per_class=20
                 )
 
-                best_model_path = f'./models/{run_suffix}.pt'
+                best_model_path = f"./saved_models/{run_suffix}.pt"
 
                 train_model(dataset, hyperparameters, best_model_path, ModelClass)
 
