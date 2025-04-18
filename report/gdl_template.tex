@@ -100,12 +100,13 @@ $$ \hat{\bf{z}}_i = \frac{1}{K_i} \sum_{k=1}^{K_i} p_i^k \bf{z}^k_i + (1-p^k_i) 
 $$ \mathcal{\hat{L}} = \mathcal{L} + \alpha \sum_{i\in \mathcal{V}} \mathcal{S}_i $$
 
 
-\subsection{Graph PonderNet}
+\subsection{RL-AP-GCN}
 
-\subsection{RL}
+\subsection{Ponder-AP-GCN}
 
+\subsection{Gumbel-AP-GCN}
 
-\subsection{Cooperative Graph Neural Networks}
+\subsection{Co-AP-GCN}
 
 \section{Implementation}
 
@@ -133,6 +134,8 @@ For the experiments with AP-GCN we used the hyperparameters described by Spinell
 
 We follow the experimental setup of Spinelli et al., splitting each dataset into a training, a validation, and a test set. Spinelli et al. follow the experimental setup of \cite{}. The validation set is used to detect early stopping, while the test set serves to evaluate the final model performance. The union of the training and validation is considered to be the "visible" or "development" set. For the \texttt{MS-Academic} dataset, the development set consists of 5,000 samples, whereas for all other datasets it contains 1,500 samples. This larger size is chosen for \texttt{MS-Academic} because a smaller development set of 1,500 samples would likely result in fewer than 20 samples per class. For each dataset, we use 20 random seeds, and for each seed, the model is trained five times with different weight initializations, resulting in 100 trained models per dataset for a fixed set of hyperparameters.
 
+While Spinelli et al. provided the seeds for the train/validation/test split, there is still randomness because of the model initializations. Since Spinelli et al. did not provide a seed to account for this, we selected the seed $11$ to make the model initializations reproducible. 
+
 We report the average accuracy when using a training set of 20 nodes per class, with uncertainties showing the 95\% confidence level calculated by bootstrapping. The uncertainty is defined as the larger absolute difference between the mean and the 2.5th or 97.5th percentile of the bootstrap distribution. This follows the code in the Jupyter notebook provided by Spinelli et al.
 
 \subsection{Computational requirements}
@@ -145,33 +148,39 @@ The experiments were conducted on a MacBook Pro with Apple M2 Pro Chip and 16 GB
 
 \textcolor{red}{In this section you should report the results of your work (e.g., the outcome of an empirical analysis). You should be objective and support your statements with empirical evidence.}
 
-\begin{table}[h]
-\small\sf\centering
-\caption{Experimental results (average of 3 runs).}
-\begin{tabular}{l c c}
-\toprule
-Methods & MAE & MSE\\
-\midrule
-\texttt{Baseline1} & $21.23 \pm 1.65$ & $841.36 \pm 12.65$\\
-\texttt{Baseline2} & $15.45 \pm 1.02$ & $652.38 \pm 09.89$\\
-\midrule
-\texttt{Method} & $12.03 \pm 0.35$ & $324.13 \pm 05.56$\\
-\bottomrule
-\end{tabular}
-\label{tab:table}
-\end{table}
+\begin{table*}[h]
+    \small\sf\centering
+    \caption{Average test set accuracies with 95\% confidence intervals, computed from 100 runs per model using 20 random seeds and 5 different initial weight settings per seed.}
+    \begin{tabular}{l c c c c c c}
+        \toprule
+        Model & Citeseer & Cora-ML & PubMed & MS-Academic & A.Computer & A.Photo\\
+        \midrule
+        \texttt{RL-AP-GCN} \\
+        \texttt{Ponder-AP-GCN} \\
+        \texttt{Gumbel-AP-GCN} \\
+        \texttt{Co-AP-GCN}  \\
+        \texttt{AP-GCN replication} &$75.88 \pm 0.27$&$83.69 \pm 0.33$&$78.98 \pm 0.40$&$91.66 \pm 0.14$&$83.26 \pm 0.34$&$90.68 \pm 0.32$\\
+        \midrule
+        \texttt{AP-GCN} & $76.12 \pm 0.24$ & $85.71 \pm 0.22$ & $79.80 \pm 0.34$ & $92.62 \pm 0.07$ & $85.18 \pm 0.23$ & $92.05 \pm 0.22$\\
+        \bottomrule
+    \end{tabular}
+    \label{tab:table}
+\end{table*}
 
 Use figures, plots and tables (like \autoref{tab:table}) to present your results in a nice and readable way.
 
 We report the results of our experiments with the AP-GCN, Graph PonderNet, RL, and CoGNN architecture.
 
+
 \subsection{AP-GCN}
 
-\subsection{Graph PonderNet}
+\subsection{RL-AP-GCN}
 
-\subsection{RL}
+\subsection{Ponder-AP-GCN}
 
-\subsection{Cooperative Graph Neural Networks}
+\subsection{Gumbel-AP-GCN}
+
+\subsection{Co-AP-GCN}
 
 \section{Discussion and conclusion}
 

@@ -1,8 +1,9 @@
 import wandb
 import numpy as np
 
-from replication.constants import Dataset, Model
-from replication.replicate import get_hyperparameters
+from replication.constants import Model
+from replication.dataset import Dataset
+from replication.model_classes.model_spinelli import get_spinelli_configuration
 
 api = wandb.Api()
 
@@ -11,7 +12,7 @@ DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC
 MODEL = Model.SPINELLI
 
 # Not necessary to change this
-PROJECT_NAME = f"AP-GCN/{MODEL.label}"
+PROJECT_NAME = f"{MODEL.label}"
 
 
 class TrainingTimeResult():
@@ -43,10 +44,15 @@ def calculate_training_times(dataset_names, model_name) -> [TrainingTimeResult]:
         if dataset_name is None:  # Only consider runs with a dataset from the list
             continue
 
-        best_prop_penalty = str(get_hyperparameters(dataset_name)["prop_penalty"])
+        _, _, _, _, model_args = get_spinelli_configuration(None, dataset_name)
+        best_prop_penalty = str(model_args.prop_penalty)
 
-        # Only consider runs with the given dataset, model, and the best propagation penalty
-        if model_name in run.tags and best_prop_penalty in run.tags:
+        # Only consider runs with the given model
+        if model_name in run.tags:
+            # Analyze only runs with the best propagation penalty
+            if model_name == Model.SPINELLI.label and best_prop_penalty not in run.tags:
+                continue
+
             run_duration = run.summary['_runtime']
             run_durations[dataset_name].append(run_duration)
 

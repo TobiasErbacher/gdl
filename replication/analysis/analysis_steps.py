@@ -8,8 +8,9 @@ import seaborn as sns
 from io import StringIO
 from typing import Dict, List
 
-from replication.constants import Dataset, Model, MATPLOTLIBPARAMS, ANALYSIS_FIGURE_OUTPUT_PATH
-from replication.replicate import get_hyperparameters
+from replication.constants import Model, MATPLOTLIBPARAMS, ANALYSIS_FIGURE_OUTPUT_PATH
+from replication.dataset import Dataset
+from replication.model_classes.model_spinelli import get_spinelli_configuration
 
 api = wandb.Api()
 mpl.rcParams.update(MATPLOTLIBPARAMS)
@@ -19,7 +20,7 @@ DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC
 MODEL = Model.SPINELLI
 
 # Not necessary to change this
-PROJECT_NAME = f"AP-GCN/{MODEL.label}"
+PROJECT_NAME = f"{MODEL.label}"
 
 
 def get_name_in_tags(tags, dataset_names):
@@ -39,17 +40,22 @@ def download_steps(dataset_names: [Dataset], model_name: str):
         if dataset_name is None:  # Only consider runs with a dataset from the list
             continue
 
-        best_prop_penalty = str(get_hyperparameters(dataset_name)["prop_penalty"])
+        _, _, _, _, model_args = get_spinelli_configuration(None, dataset_name)
+        best_prop_penalty = str(model_args.prop_penalty)
 
-        if model_name in run.tags and best_prop_penalty in run.tags:
+        # Only consider runs with the given model
+        if model_name in run.tags:
+            # Analyze only runs with the best propagation penalty
+            if model_name == Model.SPINELLI.label and best_prop_penalty not in run.tags:
+                continue
             if "test_steps" in run.summary:
-                df_string = run.summary.get('test_steps')
+                df_string = run.summary.get("test_steps")
                 df = pd.read_json(StringIO(df_string), orient="split")
-                list = df['step'].tolist()
+                step_list = df["step"].tolist()
                 if dataset_name not in steps:
-                    steps[dataset_name] = [list]
+                    steps[dataset_name] = [step_list]
                 else:
-                    steps[dataset_name].append(list)
+                    steps[dataset_name].append(step_list)
             else:
                 raise RuntimeError(f"Run {run} is missing test_steps summary statistic")
 

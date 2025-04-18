@@ -9,15 +9,45 @@ The codebase is structured in the following directories:
 
 <Add codebase directory structure!>
 
+
+* RL-AP-GCN
+* Ponder-AP-GCN
+* Gumbel-AP-GCN
+
 ## ./replication
 
-First you must log-in in wandb: `wandb login`. The `replicate.py` will use the `AP-GCN` wandb project.
+First you must log-in in wandb: `wandb login`. The `replicate.py` will generate a separate wandb project for each model.
 
-Run `replicate.py` with the following arguments. Note that `number of propagation penalties` times 100 runs are created in wandb.
+Run `benchmark.py` with the following arguments. Note that `number of propagation penalties` times 100 runs are created in wandb (if running the Spinelli model). The other models generate always 100 runs.
 
-* --dataset=Citeseer --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
-* --dataset=Cora-ML --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
-* --dataset=PubMed --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
-* --dataset=MS-Academic --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
-* --dataset=A.Computer --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
-* --dataset=A.Photo --model=spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+Below are the commands to run the script for the Spinelli model with seven propagation penalties:
+* --dataset=Citeseer --model=Spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=Cora-ML --model=Spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=PubMed --model=Spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=MS-Academic --model=Spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=A.Computer --model=Spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+* --dataset=A.Photo --model=Spinelli --prop-penalties 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
+
+Below are the commands to run the script for the RL-AP-GCN model:
+* --dataset=Citeseer --model=RL-AP-GCN 
+* --dataset=Cora-ML --model=RL-AP-GCN  
+* --dataset=PubMed --model=RL-AP-GCN  
+* --dataset=MS-Academic --model=RL-AP-GCN  
+* --dataset=A.Computer --model=RL-AP-GCN  
+* --dataset=A.Photo --model=RL-AP-GCN  
+
+* Below are the commands to run the script for the Ponder-AP-GCN model:
+* --dataset=Citeseer --model=Ponder-AP-GCN 
+* --dataset=Cora-ML --model=Ponder-AP-GCN 
+* --dataset=PubMed --model=Ponder-AP-GCN 
+* --dataset=MS-Academic --model=Ponder-AP-GCN 
+* --dataset=A.Computer --model=Ponder-AP-GCN 
+* --dataset=A.Photo --model=Ponder-AP-GCN 
+
+* Below are the commands to run the script for the Gumbel-AP-GCN model:
+* --dataset=Citeseer --model=Gumbel-AP-GCN 
+* --dataset=Cora-ML --model=Gumbel-AP-GCN 
+* --dataset=PubMed --model=Gumbel-AP-GCN 
+* --dataset=MS-Academic --model=Gumbel-AP-GCN 
+* --dataset=A.Computer --model=Gumbel-AP-GCN 
+* --dataset=A.Photo --model=Gumbel-AP-GCN 

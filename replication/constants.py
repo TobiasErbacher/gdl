@@ -1,39 +1,21 @@
-# Only put data that is valid for all model classes here
-
 from enum import Enum
 
-from replication.model_classes.model_spinelli import APGCN, APGCNMappingMoved, APGCNNoWeightedSum
+from replication.model_classes.model_Gumbel_AP_GCN import get_Gumbel_AP_GCN_configuration
+from replication.model_classes.model_Ponder_AP_GCN import get_Ponder_AP_GCN_configuration
+from replication.model_classes.model_RL_AP_GCN import get_RL_AP_GCN_configuration
+from replication.model_classes.model_spinelli import get_spinelli_configuration
 
-
-class Dataset(Enum):
-    CITESEER = ("Citeseer", 1500, "darkgreen")
-    CORAML = ("Cora-ML", 1500, "darkorange")
-    PUBMED = ("PubMed", 1500, "blue")
-    MSACADEMIC = ("MS-Academic", 5000, "pink")  # According to [18] (otherwise not 20 instances per class in the dev set)
-    ACOMPUTER = ("A.Computer", 1500, "lightgreen")
-    APHOTO = ("A.Photo", 1500, "gold")
-
-    def __init__(self, label: str, num_development: int, plot_color: str):
-        self.label = label
-        self.num_development = num_development
-        self.plot_color = plot_color
-
-    @classmethod
-    def from_label(cls, label: str):
-        return next((item for item in cls if item.label == label), None)
-
-    def __str__(self):
-        return self.label
-
+# Do not move the Dataset enum here (or you get a circular dependency)
 
 class Model(Enum):
-    SPINELLI = ("spinelli", APGCN)
-    MAPPINGMOVED = ("mapping", APGCNMappingMoved)
-    NOWEIGHTEDSUM = ("no-weighted-sum", APGCNNoWeightedSum)
+    SPINELLI = ("Spinelli", get_spinelli_configuration)
+    RL_AP_GCN = ("RL-AP-GCN", get_RL_AP_GCN_configuration)
+    PONDER_AP_GCN = ("Ponder-AP-GCN", get_Ponder_AP_GCN_configuration)
+    Gumbel_AP_GCN = ("Gumbel-AP-GCN", get_Gumbel_AP_GCN_configuration)
 
-    def __init__(self, label: str, model_class):
+    def __init__(self, label: str, get_config):
         self.label = label
-        self.model_class = model_class
+        self.get_config = get_config
 
     @classmethod
     def from_label(cls, label: str):
