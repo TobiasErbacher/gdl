@@ -51,3 +51,5 @@ Below are the commands to run the script for the RL-AP-GCN model:
 * --dataset=MS-Academic --model=Gumbel-AP-GCN 
 * --dataset=A.Computer --model=Gumbel-AP-GCN 
 * --dataset=A.Photo --model=Gumbel-AP-GCN 
+
+To execute the analysis scripts the working directory must be set to `./replicate`.

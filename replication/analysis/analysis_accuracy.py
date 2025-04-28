@@ -9,7 +9,7 @@ api = wandb.Api()
 
 # Choose the datasets and model for which the average accuracy is calculated
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
-MODEL = Model.SPINELLI
+MODEL = Model.Gumbel_AP_GCN
 
 # Not necessary to change this
 PROJECT_NAME = f"{MODEL.label}"

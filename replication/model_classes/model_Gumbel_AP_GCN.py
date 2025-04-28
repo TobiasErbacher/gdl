@@ -6,6 +6,7 @@ from torch.nn import Dropout, Linear
 from torch_geometric.nn.conv.gcn_conv import gcn_norm
 from torch_geometric.utils import dropout_edge
 
+from replication.dataset import Dataset
 from replication.model_classes.interfaces import TrainArgs, Integrator, EvalArgs, ModelArgs
 
 
@@ -118,8 +119,8 @@ class Gumbel_AP_GCN(nn.Module):
 
         # KL divergence
         kl_loss = torch.sum(p * (torch.log(p + 1e-10) - torch.log(prior + 1e-10)), dim=1).mean()
-
         total_loss = rec_loss + self.beta * kl_loss
+
         return total_loss, rec_loss, kl_loss, halt_steps + 1
 
     def inference(self, data, tau=0.01):
@@ -234,9 +235,17 @@ class Gumbel_AP_GCN_Integrator(Integrator):
 
 
 def get_Gumbel_AP_GCN_configuration(dataset, dataset_name):
+    weight_decay = 0.008
+
+    if dataset_name == Dataset.APHOTO.label or dataset_name == Dataset.ACOMPUTER.label:
+        # amazon datasets use weight_decay=0 according to the author's paper and code
+        weight_decay = 0
+
     integrator = Gumbel_AP_GCN_Integrator()
-    train_args = Gumbel_AP_GCN_TrainArgs(0.01, 0.008, 0.3,100, 500, 10.0, 0.1)
+    train_args = Gumbel_AP_GCN_TrainArgs(0.01, weight_decay, 0.3,20, 50, 10.0, 1.0)
     eval_args = Gumbel_AP_GCN_EvalArgs(0.01)
-    model_args = Gumbel_AP_GCN_ModelArgs(dataset, 10, 0.5, 0, 0.1, [64])
+    # Even though the beta is 0 and the lambda_p does not do anything do not set it to 0 because this results in
+    # division by 0 and the loss will be nan
+    model_args = Gumbel_AP_GCN_ModelArgs(dataset, 10, 0.5, 0.0, 0.2, [64])
 
     return Gumbel_AP_GCN, integrator, train_args, eval_args, model_args

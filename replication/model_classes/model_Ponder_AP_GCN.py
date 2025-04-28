@@ -6,6 +6,7 @@ from torch.nn import ModuleList, Dropout, ReLU, Linear
 from torch_geometric.nn.conv.gcn_conv import gcn_norm
 from torch_geometric.utils import dropout_edge
 
+from replication.dataset import Dataset
 from replication.model_classes.interfaces import Integrator, EvalArgs, TrainArgs, ModelArgs
 
 
@@ -17,7 +18,7 @@ class Ponder_AP_GCN(nn.Module):
     Args:
         niter: maximum number of propagation steps
         dropout: percentage of dropout
-        beta: factor before the regularization loss (geometric prior)
+        beta: factor before the regularization loss (KL divergence to geometric prior)
         lampda_p: defines the geometric prior distribution p_G(lambda_p) on the halting policy
         halt_bias_init: Set the bias for the layer predicting whether to halt or not. Setting it to 0 makes the halting unit more likely to predict no halt in the first iterations. Set it to None to not set it explicitly.
         hidden: size of the hidden layer
@@ -256,9 +257,15 @@ class Ponder_AP_GCN_Integrator(Integrator):
 
 
 def get_Ponder_AP_GCN_configuration(dataset, dataset_name):
+    weight_decay = 0.008
+
+    if dataset_name == Dataset.APHOTO.label or dataset_name == Dataset.ACOMPUTER.label:
+        # amazon datasets use weight_decay=0 according to the author's paper and code
+        weight_decay = 0
+
     integrator = Ponder_AP_GCN_Integrator()
-    train_args = Ponder_AP_GCN_TrainArgs(0.01, 0.008, 0.3)
+    train_args = Ponder_AP_GCN_TrainArgs(0.01, weight_decay, 0.3)
     eval_args = Ponder_AP_GCN_EvalArgs(5.0, False)
-    model_args = Ponder_AP_GCN_ModelArgs(dataset, 10, 0.5, 0.05, 0.2, 0.0, [64])
+    model_args = Ponder_AP_GCN_ModelArgs(dataset, 10, 0.5, 0.01, 0.2, 0.0, [64])
 
     return Ponder_AP_GCN, integrator, train_args, eval_args, model_args

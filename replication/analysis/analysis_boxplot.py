@@ -1,21 +1,21 @@
+from io import StringIO
+from typing import List, Dict
+
+import numpy as np
 import pandas as pd
 import wandb
-import numpy as np
-import matplotlib.pyplot as plt
+from matplotlib import pyplot as plt
 import matplotlib as mpl
-import seaborn as sns
+import matplotlib.colors as mcolors
 
-from io import StringIO
-from typing import Dict, List
-
-from replication.constants import Model, MATPLOTLIBPARAMS, ANALYSIS_FIGURE_OUTPUT_PATH
+from replication.constants import Model, ANALYSIS_FIGURE_OUTPUT_PATH, MATPLOTLIBPARAMS
 from replication.dataset import Dataset
 from replication.model_classes.model_spinelli import get_spinelli_configuration
 
 api = wandb.Api()
 mpl.rcParams.update(MATPLOTLIBPARAMS)
 
-# Choose the datasets and model for which the distribution of the number of steps is plotted
+# Choose the datasets and model for which the average accuracy is calculated
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
 MODEL = Model.SPINELLI
 
@@ -62,34 +62,34 @@ def download_steps(dataset_names: [Dataset], model_name: str):
     return steps
 
 
-def plot_step_distribution_per_dataset(steps_per_dataset: Dict[str, List[List[int]]], model_name: str):
-    # Over nodes
-    step_distribution_per_dataset = {}
+def plot_boxplot(steps_per_dataset: Dict[str, List[List[int]]], model_name: str):
+    standard_deviations_per_dataset = {}
 
-    for dataset_name, steps_list in steps_per_dataset.items():
-        steps_list = np.array(steps_list)
-        step_distribution_per_dataset[dataset_name] = np.average(steps_list, axis=0)
+    for dataset_name, steps in steps_per_dataset.items():
+        steps_array = np.array(steps)
+        standard_deviations_per_node = steps_array.std(axis=0)
+        standard_deviations_per_dataset[dataset_name] = standard_deviations_per_node
 
-    fig, ax = plt.subplots()
-    for dataset_name, avg_steps in step_distribution_per_dataset.items():
-        sns.kdeplot(avg_steps,
-                    fill=True,
-                    linewidth=2,
-                    ax=ax,
-                    label=dataset_name,
-                    color=Dataset.from_label(dataset_name).plot_color
-        )
+    boxplot = plt.boxplot(standard_deviations_per_dataset.values(),
+                          tick_labels=standard_deviations_per_dataset.keys(),
+                          patch_artist=True,
+                          medianprops=dict(color="red")
+                          )
 
-    plt.xlabel("Number of Steps")
-    plt.ylabel("Density")
-    ax.legend()
-    ax.grid(axis="y")
+    for patch, tick in zip(boxplot["boxes"], plt.gca().get_xticklabels()):
+        tick_label = tick.get_text()
+        color_value = Dataset.from_label(tick_label).plot_color
+        color_rgba = mcolors.to_rgba(color_value, alpha=0.5)
+        patch.set_facecolor(color_rgba)
+
+    plt.ylabel("Standard Deviation per Node")
+    plt.grid(True)
     plt.tight_layout()
-    plt.savefig(ANALYSIS_FIGURE_OUTPUT_PATH + f"{model_name}_steps_distribution.pdf")
+    plt.savefig(ANALYSIS_FIGURE_OUTPUT_PATH + f"{model_name}_std_steps_per_node_boxplot.pdf")
 
 
 dataset_names = [dataset.label for dataset in DATASETS]
 model_name = MODEL.label
 
 steps_per_dataset = download_steps(dataset_names, model_name)
-plot_step_distribution_per_dataset(steps_per_dataset, model_name)
+plot_boxplot(steps_per_dataset, model_name)

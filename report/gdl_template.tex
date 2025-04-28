@@ -4,8 +4,12 @@
 \def\groupid{BEK}
 \def\projectid{AP-GCN}
 
+\usepackage{subcaption}
+\usepackage{float}
+
 \DeclareMathOperator*{\argmin}{arg\,min}
 
+\graphicspath{{figures/}}
 
 \begin{document}
 
@@ -119,6 +123,8 @@ We independently implemented AP-GCN and compared our implementation with the ref
 
 For the loading of the \texttt{Citeseer}, \texttt{Cora-ML}, \texttt{PubMed}, \texttt{MS-Academic}, \texttt{A. Computer}, and \texttt{A. Photo} datasets we used the code provided by Spinelli et al.
 
+We asked Prof. Spinelli, among other questions, why they placed the feature mapping layer that projects to the number of classes before the message passing layer. However, we did not receive a response to our email.
+
 \subsection{Datasets}
 \textcolor{red}{Describe the datasets you used and how you obtained them. }
 
@@ -136,7 +142,7 @@ We follow the experimental setup of Spinelli et al., splitting each dataset into
 
 While Spinelli et al. provided the seeds for the train/validation/test split, there is still randomness because of the model initializations. Since Spinelli et al. did not provide a seed to account for this, we selected the seed $11$ to make the model initializations reproducible. 
 
-We report the average accuracy when using a training set of 20 nodes per class, with uncertainties showing the 95\% confidence level calculated by bootstrapping. The uncertainty is defined as the larger absolute difference between the mean and the 2.5th or 97.5th percentile of the bootstrap distribution. This follows the code in the Jupyter notebook provided by Spinelli et al.
+We report the average accuracy when using a training set of 20 nodes per class, with uncertainties showing the 95\% confidence level calculated by bootstrapping. The uncertainty is defined as the larger absolute difference between the mean and the 2.5th or 97.5th percentile of the bootstrap distribution. This follows the code in the Jupyter notebook provided by Spinelli et al. In each run we also save when each node in the test set halts.
 
 \subsection{Computational requirements}
 \textcolor{red}{Provide information on computational requirements for each of your experiments. For example, the number of CPU/GPU hours and memory requirements. You'll need to think about this ahead of time, and write your code in a way that captures this information so you can later add it to this section. }
@@ -155,9 +161,9 @@ The experiments were conducted on a MacBook Pro with Apple M2 Pro Chip and 16 GB
         \toprule
         Model & Citeseer & Cora-ML & PubMed & MS-Academic & A.Computer & A.Photo\\
         \midrule
-        \texttt{RL-AP-GCN} \\
-        \texttt{Ponder-AP-GCN} \\
-        \texttt{Gumbel-AP-GCN} \\
+        \texttt{RL-AP-GCN} &$74.65 \pm 0.29$&$81.60 \pm 1.38$&$77.16 \pm 0.42$&$88.32 \pm 0.41$&$79.94 \pm 0.52$&$88.89 \pm 0.43$ \\
+        \texttt{Ponder-AP-GCN} &$74.80 \pm 0.31$&$82.14 \pm 0.31$&$76.37 \pm 0.41$&$91.29 \pm 0.12$&$83.41 \pm 0.25$&$91.27 \pm 0.23$ \\
+        \texttt{Gumbel-AP-GCN} &$70.09 \pm 1.25$&$70.92 \pm 2.34$&$76.83 \pm 0.49$&$87.56 \pm 0.45$&$79.13 \pm 0.58$&$89.21 \pm 0.44$ \\
         \texttt{Co-AP-GCN}  \\
         \texttt{AP-GCN replication} &$75.88 \pm 0.27$&$83.69 \pm 0.33$&$78.98 \pm 0.40$&$91.66 \pm 0.14$&$83.26 \pm 0.34$&$90.68 \pm 0.32$\\
         \midrule
@@ -169,7 +175,7 @@ The experiments were conducted on a MacBook Pro with Apple M2 Pro Chip and 16 GB
 
 Use figures, plots and tables (like \autoref{tab:table}) to present your results in a nice and readable way.
 
-We report the results of our experiments with the AP-GCN, Graph PonderNet, RL, and CoGNN architecture.
+We report the results of our experiments with the AP-GCN, Graph PonderNet, RL, and CoGNN architectures. For each model architecture we report the distribution of the halting steps, i.e., the steps at which each node halts. Since we have data from 100 runs per model architecture, we first average the halting steps for each node over the 100 runs and then plot the distribution obtained using kernel density estimation (KDE) over these averaged halting steps per node. Note that because of the averaging and the KDE there can be probability mass at non-integer values even though in reality all the models can only halt after an integer number of steps. This approach follows the methodology used by Spinelli et al.
 
 
 \subsection{AP-GCN}
@@ -182,12 +188,110 @@ We report the results of our experiments with the AP-GCN, Graph PonderNet, RL, a
 
 \subsection{Co-AP-GCN}
 
+\begin{figure*}[p]
+    \centering
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Spinelli_steps_distribution.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{AP-GCN Replication}
+            \label{fig:step_dist_AP_GCN}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{RL-AP-GCN_steps_distribution.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{RL-AP-GCN}
+            \label{fig:step_dist_RL_AP_GCN}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Ponder-AP-GCN_steps_distribution.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{Ponder-AP-GCN}
+            \label{fig:step_dist_Ponder_AP_GCN}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Gumbel-AP-GCN_steps_distribution.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{Gumbel-AP-GCN}
+            \label{fig:step_dist_Gumbel_AP_GCN}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Spinelli_steps_distribution.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{Co-AP-GCN}
+            \label{fig:step_dist_Co_AP_GCN}
+        \end{subfigure}
+        
+        \captionsetup{justification=centerlast}
+        \caption{Average density distribution of the halting steps for the five different model architectures for each dataset.}
+        \label{fig:main}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[t]{0.48\textwidth}
+        \centering
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Spinelli_std_steps_per_node_boxplot.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{AP-GCN Replication}
+            \label{fig:step_std_AP_GCN}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{RL-AP-GCN_std_steps_per_node_boxplot.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{RL-AP-GCN}
+            \label{fig:step_std_RL_AP_GCN}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Ponder-AP-GCN_std_steps_per_node_boxplot.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{Ponder-AP-GCN}
+            \label{fig:step_std_Ponder_AP_GCN}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Gumbel-AP-GCN_std_steps_per_node_boxplot.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{Gumbel-AP-GCN}
+            \label{fig:step_std_Gumbel_AP_GCN}
+        \end{subfigure}
+        
+        \begin{subfigure}[b]{0.7\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{Spinelli_std_steps_per_node_boxplot.pdf}
+            \captionsetup{justification=centerlast}
+            \caption{Co-AP-GCN}
+            \label{fig:step_std_Co_AP_GCN}
+        \end{subfigure}
+        
+        \captionsetup{justification=centerlast}
+        \caption{Standard deviations per node over the 100 experiments for each dataset.}
+        \label{fig:steps_dist_steps_std}
+    \end{minipage}
+\end{figure*}
+
+
 \section{Discussion and conclusion}
 
 \textcolor{red}{Here you can express your judgments and draw your conclusions based on the  evidences produced on the previous sections.
 Try to summarize the achievements of your project and its limits, suggesting (when appropriate) possible extensions and future works.}
 
-
+\clearpage
 % Bibliography
 \bibliography{bibliography}
 \bibliographystyle{unsrtnat}

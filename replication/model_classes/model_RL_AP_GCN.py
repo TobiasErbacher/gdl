@@ -9,7 +9,9 @@ from torch_geometric.nn.conv.gcn_conv import gcn_norm
 from torch_geometric.utils import dropout_edge
 import torch.nn.functional as F
 
+from replication.dataset import Dataset
 from replication.model_classes.interfaces import TrainArgs, ModelArgs, Integrator, EvalArgs
+
 
 # From Jonathan RL_GUMBEL_GUMBELSAMPLING.ipynb
 
@@ -53,14 +55,15 @@ class RLAdaptiveProp(MessagePassing):
         self.current_epoch = 0
 
         # POLICY NETWORK HERE: MANAGE THE HALTING DECISION.
+        # The max is necessary because you can have datasets with 3 classes (3//4=0)
         self.policy_hidden1 = Linear(h_size, h_size // 2)
-        self.policy_hidden2 = Linear(h_size // 2, h_size // 4)
-        self.policy = Linear(h_size // 4, 1)
+        self.policy_hidden2 = Linear(h_size // 2, max(1, h_size // 4))
+        self.policy = Linear(max(1, h_size // 4), 1)
 
         # VALUE NETWORK FOR THE BASELINE.
         self.value_hidden1 = Linear(h_size, h_size // 2)
-        self.value_hidden2 = Linear(h_size // 2, h_size // 4)
-        self.value = Linear(h_size // 4, 1)
+        self.value_hidden2 = Linear(h_size // 2, max(1, h_size // 4))
+        self.value = Linear(max(1, h_size // 4), 1)
 
         self.reg_params = list(self.policy_hidden1.parameters()) + \
                           list(self.policy_hidden2.parameters()) + \
@@ -147,6 +150,7 @@ class RLAdaptiveProp(MessagePassing):
             # policy (halting probability) and value for all nodes
             p_hidden = F.relu(self.policy_hidden1(x))
             p_hidden = F.relu(self.policy_hidden2(p_hidden))
+
             halt_logits = self.policy(p_hidden).view(-1)
             p = torch.sigmoid(halt_logits)
 
@@ -218,6 +222,7 @@ class RL_AP_GCN(torch.nn.Module):
         self.act_fn = ReLU()
         self.reset_parameters()
 
+
     def reset_parameters(self):
         self.prop.reset_parameters()
         for layer in self.layers:
@@ -228,6 +233,7 @@ class RL_AP_GCN(torch.nn.Module):
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
+
         for i, layer in enumerate(self.layers):
             x = layer(self.dropout(x))
             if i < len(self.layers) - 1:
@@ -237,7 +243,8 @@ class RL_AP_GCN(torch.nn.Module):
 
 
 class RL_AP_GCN_TrainArgs(TrainArgs):
-    def __init__(self, learning_rate: float, normalizer, weight_decay: float, entropy_weight: float, value_weight: float, max_grad_norm: float):
+    def __init__(self, learning_rate: float, normalizer, weight_decay: float, entropy_weight: float,
+                 value_weight: float, max_grad_norm: float):
         super().__init__(learning_rate)
         self.normalizer = normalizer
         self.weight_decay = weight_decay
@@ -247,7 +254,8 @@ class RL_AP_GCN_TrainArgs(TrainArgs):
 
 
 class RL_AP_GCN_ModelArgs(ModelArgs):
-    def __init__(self, dataset, niter: int, computation_penalty: float, exploration_factor: float, use_scheduled_penalty: bool, hidden, dropout: float):
+    def __init__(self, dataset, niter: int, computation_penalty: float, exploration_factor: float,
+                 use_scheduled_penalty: bool, hidden, dropout: float):
         self.dataset = dataset
         self.niter = niter
         self.computation_penalty = computation_penalty
@@ -258,7 +266,8 @@ class RL_AP_GCN_ModelArgs(ModelArgs):
 
 
 class RL_AP_GCN_Integrator(Integrator):
-    def train_epoch(self, model, data, optimizer, epoch: int, total_epochs: int, train_args: RL_AP_GCN_TrainArgs) -> (float, np.array):
+    def train_epoch(self, model, data, optimizer, epoch: int, total_epochs: int, train_args: RL_AP_GCN_TrainArgs) -> (
+    float, np.array):
         model.train()
         model.set_epoch(epoch, total_epochs)
         optimizer.zero_grad()
@@ -300,8 +309,7 @@ class RL_AP_GCN_Integrator(Integrator):
         model.eval()
         with torch.no_grad():
             logits, steps, _ = model(data)
-            if mask is None:
-                mask = torch.ones(data.num_nodes, dtype=torch.bool, device=data.x.device)
+
             pred = logits[mask].max(1)[1]
             correct = pred.eq(data.y[mask]).sum().item()
             total = mask.sum().item()
@@ -311,8 +319,14 @@ class RL_AP_GCN_Integrator(Integrator):
 
 
 def get_RL_AP_GCN_configuration(dataset, dataset_name):
+    weight_decay = 0.008
+
+    if dataset_name == Dataset.APHOTO.label or dataset_name == Dataset.ACOMPUTER.label:
+        # amazon datasets use weight_decay=0 according to the author's paper and code
+        weight_decay = 0
+
     integrator = RL_AP_GCN_Integrator()
-    train_args = RL_AP_GCN_TrainArgs(0.01, RewardNormalizer(), 0.008, 0.01, 0.5, 1.0)
+    train_args = RL_AP_GCN_TrainArgs(0.01, RewardNormalizer(), weight_decay, 0.01, 0.5, 1.0)
     model_args = RL_AP_GCN_ModelArgs(dataset, 10, 0.0, 0.01, False, [64], 0.5)
 
     return RL_AP_GCN, integrator, train_args, None, model_args
