@@ -17,7 +17,7 @@ from replication.model_classes.model_spinelli import get_spinelli_configuration
 api = wandb.Api()
 mpl.rcParams.update(MATPLOTLIBPARAMS)
 
-# Choose the datasets and model for which the average accuracy is calculated
+# Choose the datasets and model for which the boxplots per class are created
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
 MODEL = Model.SPINELLI
 
@@ -95,14 +95,11 @@ def plot_boxplot_per_class(steps_per_dataset: Dict[str, List[List[int]]], model_
         boxplot = plt.boxplot(means_per_class_sorted.values(),
                               tick_labels=means_per_class_sorted.keys(),
                               patch_artist=True,
-                              medianprops = dict(color="red")
+                              medianprops=dict(color="red")
                               )
 
-        for patch, tick in zip(boxplot["boxes"], plt.gca().get_xticklabels()):
-            tick_label = tick.get_text()
-            color_value = Dataset.from_label(tick_label).plot_color
-            color_rgba = mcolors.to_rgba(color_value, alpha=0.5)
-            patch.set_facecolor(color_rgba)
+        for patch in boxplot["boxes"]:
+            patch.set_facecolor("lightblue")
 
         plt.ylabel("Halting Step")
         plt.xlabel("Class")

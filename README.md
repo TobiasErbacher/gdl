@@ -16,7 +16,7 @@ The codebase is structured in the following directories:
 
 ## ./replication
 
-First you must log-in in wandb: `wandb login`. The `replicate.py` will generate a separate wandb project for each model.
+First you must log-in to wandb: `wandb login`. The `benchmark.py` script will generate a separate wandb project for each model.
 
 Run `benchmark.py` with the following arguments. Note that `number of propagation penalties` times 100 runs are created in wandb (if running the Spinelli model). The other models generate always 100 runs.
 

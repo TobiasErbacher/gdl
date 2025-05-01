@@ -15,9 +15,9 @@ from replication.model_classes.model_spinelli import get_spinelli_configuration
 api = wandb.Api()
 mpl.rcParams.update(MATPLOTLIBPARAMS)
 
-# Choose the datasets and model for which the average accuracy is calculated
+# Choose the datasets and model for which the boxplots are created
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
-MODEL = Model.SPINELLI
+MODEL = Model.PONDER_AP_GCN
 
 # Not necessary to change this
 PROJECT_NAME = f"{MODEL.label}"
@@ -69,6 +69,18 @@ def plot_boxplot(steps_per_dataset: Dict[str, List[List[int]]], model_name: str)
         steps_array = np.array(steps)
         standard_deviations_per_node = steps_array.std(axis=0)
         standard_deviations_per_dataset[dataset_name] = standard_deviations_per_node
+
+    # If we create a plot for all datasets we want a consistent order
+    if len(standard_deviations_per_dataset) == 6:
+        desired_order = [Dataset.CITESEER.label,
+                         Dataset.CORAML.label,
+                         Dataset.PUBMED.label,
+                         Dataset.MSACADEMIC.label,
+                         Dataset.APHOTO.label,
+                         Dataset.ACOMPUTER.label]
+
+        # Rebuild the dictionary in the desired order
+        standard_deviations_per_dataset = {key: standard_deviations_per_dataset[key] for key in desired_order}
 
     boxplot = plt.boxplot(standard_deviations_per_dataset.values(),
                           tick_labels=standard_deviations_per_dataset.keys(),

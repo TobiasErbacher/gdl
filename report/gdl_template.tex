@@ -42,7 +42,11 @@ The length of the report should be between 4 and 8 pages (without considering re
 
 \textcolor{red}{Here you should clarify the context of your project and the problem you are dealing with. You should also make a brief summary of the main results and contributions (i.e., if you tried to replicate the results of an existing paper you should say if you were successful or not). The introduction should help the reader to follow along for the rest of the paper.}
 
-This work is a replication study for the paper "Adaptive Propagation Graph Convolutional Network" by Spinelli et al. \cite{spinelli2021}. [Confirm that their results hold if they do]. Furthermore, we implemented and evaluated several different approaches for allowing an individual number of message passing steps per node. [Very briefly mention/explain these approaches and tell how results are in comparison with Spinelli]. 
+This work is a replication study of the paper "Adaptive Propagation Graph Convolutional Network" by Spinelli et al. \cite{spinelli2021}. In Graph Convolutional Networks (GCNs), each node updates its representation by aggregating and transforming features from its neighbors. This process is repeated over several message passing steps, allowing nodes to incorporate information from increasingly distant parts of the graph. The core contribution of Spinelli et al. is the introduction of the Adaptive Propagation Graph Convolutional Network (AP-GCN) that allows each node in the graph to undergo an individual number of message passing steps. The number of message passing steps per node is learned during training.
+
+In addition to the replication work, we implemented four different model architectures for allowing an individual number of message passing steps per node. We evaluated these model architectures in the same setting as AP-GCN.
+
+[Very briefly mention/explain these approaches and tell how results are in comparison with Spinelli]. 
 
 Our code is available on GitHub\footnote{\url{https://github.com/TobiasErbacher/gdl}}.
 
@@ -52,7 +56,7 @@ Our code is available on GitHub\footnote{\url{https://github.com/TobiasErbacher/
 N.B.: When referencing a different approach, it is not necessary to provide a detailed description, only one/two brief sentences are enough. The interested readers can eventually read the referenced work. }
 
 
-The main contribution of Spinelli et al. is the introduction of the Adaptive Propagation Graph Convolutional Network (AP-GCN) which enables each node to have an individual number of message passing steps.
+The main contribution of Spinelli et al. is the introduction of the Adaptive Propagation Graph Convolutional Network (AP-GCN) which enables each node to have an individual number of message passing steps. While Spinelli et al. claim that AP-GCN was at the time the only model in which the number of message passing steps is determined independently for each node and dynamically adjusted during training, there exist model architectures that achieve a similar or at least related goal.
 
 Xu et al. \cite{xu2018} introduced Jumping Knowledge Networks which perform a fixed number of message passes for all nodes and then use per-node LSTM attention to calculate the weighted average over the hidden vectors of the message passing rounds.   
 
@@ -64,7 +68,7 @@ Banino et al. \cite{banino2021} proposed the PonderNet architecture, which dynam
 
 Xiao et al. \cite{xiao2021} presented the Learning to Propagate (L2P) framework. They use a latent discrete variable for each node that represents its optimal number of message passing steps. These variables are learned using variational Expectation-Maximization.
 
-Finkelshtein et al. \cite{finkelshtein2024} introduced Cooperative Graph Neural Networks (CO-GNNs) where nodes are in one of the states Standard, Listen, Broadcast, or Isolate. The message-passing behavior of each node is governed by its current state. Nodes in the Isolate state neither send nor receive messages, effectively halting their participation in the propagation process — a situation similar to the halting mechanism in AP-GCN.
+Finkelshtein et al. \cite{finkelshtein2024} introduced Cooperative Graph Neural Networks (Co-GNNs) where nodes are in one of the states Standard, Listen, Broadcast, or Isolate. The message-passing behavior of each node is governed by its current state. Nodes in the Broadcast state do not receive any messages but can still send messages — a situation similar to the halting mechanism in AP-GCN.
 
 \section{Methodology}
 
@@ -72,50 +76,80 @@ Finkelshtein et al. \cite{finkelshtein2024} introduced Cooperative Graph Neural 
 \textit{You can change the name of this section as you see fit.}\\
 In this section you should give a description of the methodological aspects of your work, for instance how you modified an existing method to perform a particular task or to overcome a particular limitation. If your project is about reproducibility, here you should describe the method presented in the original paper.}
 
-In this section we describe the AP-GCN by Spinelli et al. Furthermore, we introduce alternative architectures that allow each node to dynamically adjust its number of message passing steps.
+In this section we first introduce the problem of having an individual number of message passing steps per node. Then, we describe the AP-GCN by Spinelli et al. Lastly, we introduce alternative architectures that allow each node to dynamically adjust its number of message passing steps. In accordance with the AP-GCN, We designed all variants to always do at least one step of message passing per node.
+
+In traditional message-passing graph neural networks, the number of propagation steps is identical for all nodes in the graph. This uniformity implies that each node aggregates information from its neighbors through a fixed number of iterations, regardless of its individual characteristics or position within the graph structure. Spinelli et al. focus on the case where the message-passing is implemented by a Graph Convolution Network (GCN) \cite{kipf2017}. The embedding for node $\mathbf{z}_i$ after $k$ message passing iterations is
+
+$$
+\mathbf{z}_i^{k} = \sum_{j \in \mathcal{N}(i) \cup \{i\}} \frac{1}{\sqrt{\deg(i)} \cdot \sqrt{\deg(j)}} \left( \mathbf{W}^\top \cdot \mathbf{z}_j^{k-1} \right) + \mathbf{b}
+$$
 
 \subsection{AP-GCN}
-In traditional message-passing-based graph neural networks, the number of propagation steps is identical for all nodes in the graph. This uniformity implies that each node aggregates information from its neighbors through a fixed number of iterations, regardless of its individual characteristics or position within the graph structure. Spinelli et al. focus on the case where the message-passing is implemented by a Graph Convolution Network (GCN) \cite{kipf2017}. However, their approach is not limited to GCNs. The proposed adaptive propagation GCN (AP-GCN) allows each node in the graph to have an individual number of message passing iterations. 
+The proposed Adaptive Propagation GCN (AP-GCN) enables each node in the graph to perform a distinct number of message-passing iterations, with the number being learned during training rather than set in advance. AP-GCN is inspired by the adaptive computation time in RNNs \cite{graves2017}.
 
-A classifier is added to each node that predicts based on the hidden embedding after $k$ message-passing iterations whether the propagation should halt. The output of the classifer, $h^k_i$, is the probability the propagation should stop for node $i$ after iteration $k$.
+A classifier is added to each node that predicts based on the hidden embedding of a node after $k$ message passing steps whether the propagation should stop. That is, the classifier predicts whether a node should stop aggregating information from its neighbors after $k$ message passing steps. The output of the classifier, $h^k_i$, is the probability the propagation should stop for node $i$ after having performed $k$ steps of message passing.
 
-$$ h^k_i = \sigma(\textbf{Q}\textbf{z}^k_i + q) $$
+$$h^k_i = \sigma(\textbf{Q}\textbf{z}^k_i + q)$$
 
-\noindent $\textbf{Q}$ and $q$ are trainable parameters and are shared between all nodes. There are two ways the propagation can stop. Firstly, the propagation stops if the number of propagations reaches a predefined maximum number of allowed steps $T$. Secondly, the propagation stops when the propagation budget has been used up. The budget is defined as $1-\epsilon$ where $\epsilon$ is a hyperparameter set a small value. When $k=K_i$ the budget for node $i$ has been reached after $k$ iterations and the propagation stops. 
+\noindent $\textbf{Q}$ and $q$ are trainable parameters and are shared between all nodes. There are two ways the propagation can stop. Firstly, the propagation stops if the number of propagations reaches a predefined maximum number of allowed steps $T$. Secondly, the propagation stops when the propagation budget has been used up. The budget is defined as $1-\epsilon$ where $\epsilon$ is a hyperparameter set to a small value. When $k=K_i$ the budget for node $i$ has been reached after $k$ iterations and the propagation stops. 
 
 $$ K_i = \argmin_{k' \in \{1, 2, ..., T\}} \sum_{k=1}^{k'} h_i^k \geq 1-\epsilon $$
 
-\noindent Knowing when the propagation stops allows us to define a cumulative distribution for the halting probabilities. TODO: are we sure about this (Remainder)?
+\noindent According to Spinelli et al. the halting probabilities can be combined as
 
 \[
     p_i^k = 
     \begin{cases}
     R_i = 1 - \sum_{k=1}^{K_i - 1} h_i^k & \text{if } k = K_i \text{ or } k = T \\
-    \frac{h_i^k}{\sum_{k=1}^{K_i} h_i^k} & \text{otherwise}
+    \sum_{k=1}^{k} h_i^k & \text{otherwise}
     \end{cases}
 \]
 
-\noindent The output of the AP-GCN message-passing layer for node $i$ is $\hat{\bf{z}}_i$. TODO: Why do we do this
+\noindent so that the sequence $\{p_i\}$ forms a \textbf{cumulative probability distribution} (CDF) for the halting probabilities $\{h_i\}$. However, the sequence $\{p_i\}$ does not constitute a CDF, because for $\{p_i\}$ to be a valid CDF, it must satisfy the condition $p_i^k = 1$ when $k = K_i$ or $k = T$. This requirement arises from the fact that a CDF must converge to 1 at its maximum value, reflecting the total probability mass. Clearly, the definition by Spinelli et al., in general, violates that constraint. It could be that the error arose because AP-GCN is inspired by Graves \cite{graves2017} where in equation 6, Graves defines the $\{p_t\}$ to form a \textbf{probability mass function} (PMF) for the $\{h_t\}$ in a similar way.
 
-$$ \hat{\bf{z}}_i = \frac{1}{K_i} \sum_{k=1}^{K_i} p_i^k \bf{z}^k_i + (1-p^k_i) \bf{z}_i^{k-1} $$
+The output of the AP-GCN message passing layer for node $i$ is $\hat{\bf{z}}_i$ which is defined as
 
-\noindent The propagation cost $\mathcal{S}_i$ for node $i$ is given by the sum of $K_i$ and $R_i$. Adding $\mathcal{S}_i$ to the loss term incentivizes the model to choose a limited number of propagation steps for node $i$. The propagation penalty $\alpha$ controls the trade-off between accuracy and compute time. A larger $\alpha$ encourages the model to restrict the number of propagation steps per node, whereas a smaller $\alpha$ allows for deeper message passing, potentially improving accuracy at the cost of increased computation. Spinelli et al. decided to update the halting unit once every five steps. 
+$$ 
+\hat{\mathbf{z}}_i = \frac{1}{K_i} \sum_{k=1}^{K_i} p_i^k \mathbf{z}^k_i + (1-p^k_i) \mathbf{z}_i^{k-1} 
+$$
+
+\noindent Although Spinelli et al. do not state it, this way of accumulating the contribution of the embeddings from the different propagation steps likely is inspired by the soft-conditional output from Scardapane et al. \cite{scardapane2020}.
+
+ The propagation cost $\mathcal{S}_i$ for node $i$ is given by the sum of $K_i$ and $R_i$. Adding $\mathcal{S}_i$ to the loss term incentivizes the model to choose a limited number of propagation steps for node $i$. The propagation penalty $\alpha$ controls the trade-off between accuracy and compute time. A larger $\alpha$ encourages the model to restrict the number of propagation steps per node, whereas a smaller $\alpha$ allows for deeper message passing, potentially improving accuracy at the cost of increased computation. Spinelli et al. decided to update the halting unit once every five epochs. Thus, the final loss is
 
 $$ \mathcal{\hat{L}} = \mathcal{L} + \alpha \sum_{i\in \mathcal{V}} \mathcal{S}_i $$
 
 
 \subsection{RL-AP-GCN}
-The inherent dynamics of Graph Neural Network propagation, particularly the phenomenon where node representations tend to homogenize and converge, which can derive in over-smoothing, can serve as a powerful implicit signal for an adaptive halting mechanism to find an optimal halting point without the need to a computational regularization. An RL agent, observing the node's evolving embedding, can learn to recognize when the representation changes minimally between propagation steps and halt, ideally, in the maximum expressiveness of that particular node. This stabilisation indicates diminishing returns from further message passing, suggesting sufficient relevant neighborhood information has been aggregated at certain point. Consequently, the policy network can learn, guided purely by the task reward (e.g., classification accuracy), to halt propagation when this representational convergence occurs. This approach does not need for explicit regularization terms or penalties based solely on the number of steps, grounding the halting decision more organically in the information saturation relevant to solving the task, rather than an external computational budget.
+The dynamics of Graph Neural Network propagation, particularly the phenomenon where node representations tend to homogenize and converge, which can derive in over-smoothing, can serve as a signal for an adaptive halting mechanism to find an optimal halting point without the need for regularization. An RL agent, observing the node's evolving embedding, can learn to recognize when the representation changes minimally between propagation steps and halt, ideally, in the maximum expressiveness of that particular node. This stabilization indicates diminishing returns from further message passing, suggesting sufficient relevant neighborhood information has been aggregated at certain point. Consequently, the policy network can learn, guided purely by the task reward (e.g., classification accuracy), to halt propagation when this representational convergence occurs. This approach does not need for explicit regularization terms or penalties based solely on the number of steps, grounding the halting decision more organically in the information saturation relevant to solving the task, rather than an external computational budget.
 
-The current reinforcement learning implementation treats each node as an Actor Critic agent but policy and value networks are shared among all nodes. We first compute the initial node embeddings. Then, an iterative loop begins where, at each step, the shared policy network (Actor) evaluates the current embedding of active nodes to output a halting probability, while a shared value network (Critic) estimates the expected future reward (baseline) from that state. A halting action is sampled (incorporating exploration noise during training), and propagation continues for non-halted nodes. Upon halting (or reaching the maximum iterations), a reward is calculated based primarily on the final classification correctness, and the system learns by back propagating a combined loss: a supervised loss for the GNN's classification output, and an RL loss comprising a policy gradient term (using the advantage calculated as actual reward minus the Critic's baseline), a value function loss for the Critic, and an entropy bonus to encourage exploration.
+The current reinforcement learning implementation treats each node as an Actor Critic agent but policy and value networks are shared among all nodes. We first compute the initial node embeddings. Then, a loop begins where, at each step, the shared policy network (Actor) evaluates the current embedding of active nodes to output a halting probability, while a shared value network (Critic) estimates the expected future reward (baseline) from that state. A halting action is sampled (incorporating exploration noise during training), and propagation continues for non-halted nodes. Upon halting (or reaching the maximum iterations), a reward is calculated based primarily on the final classification correctness, and the system learns by back propagating a combined loss: a supervised loss for the GNN's classification output, and an RL loss comprising a policy gradient term (using the advantage calculated as actual reward minus the Critic's baseline), a value function loss for the Critic, and an entropy bonus to encourage exploration.
 
-There are several extensions that could enhance the implementation. The sparse, delayed reward signal could be augmented with denser, intermediate rewards reflecting confidence gains at each step. The RL state representation could be enriched beyond the current embedding to include neighboring node embeddings difference or a history of embeddings (using RNNs or attention), giving the policy more context. Employing more advanced RL algorithms like PPO for policy updates or GAE for advantage estimation could improve training stability and sample efficiency compared to the current REINFORCE-with-baseline approach. Finally, refining the training strategy, perhaps by alternating between supervised and RL optimization steps, could further stabilize learning and potentially improve final performance. In any case, the results seems promising considering that we did not undergo into a deep search for hyperparameters or even a careful reward design.
+There are several extensions that could enhance the implementation. The sparse, delayed reward signal could be augmented with denser, intermediate rewards reflecting confidence gains at each step. The RL state representation could be enriched beyond the current embedding to include neighboring node embeddings difference or a history of embeddings (using RNNs or attention), giving the policy more context. Employing more advanced RL algorithms such as PPO for policy updates or GAE for advantage estimation could improve training stability and sample efficiency compared to the current REINFORCE-with-baseline approach. Finally, refining the training strategy, perhaps by alternating between supervised and RL optimization steps, could further stabilize learning and potentially improve final performance.
+
 \subsection{Ponder-AP-GCN}
-Deeply inspired by PonderNet paper, we implement its core ideas for the GNN adaptive halting problem. The central concept treats the node's decision at each step as a Bernoulli trial: halt with probability $\lambda_n$ or continue. This $\lambda_n$ represents the conditional probability of halting at step $n$, given the node hasn't halted previously. Running this sequence up to a maximum $N$ steps defines an unconditional halting distribution $p_n$  (the probability of halting exactly at step $n$), which generalizes the geometric distribution by allowing $\lambda_n$  to vary per step. With this theoretical background, the model is trained end-to-end by minimizing an expected loss function: the reconstruction loss (e.g., cross-entropy averaged over the outputs $y_n$  weighted by their corresponding halting probability $p_n$), plus a KL divergence term. This KL term acts as a regularizer, weighted by $\beta$, encouraging the learned distribution $p_n$  to stay close to a predefined prior geometric distribution $p_G$ . The advantage here is replacing unintuitive computational penalties with this KL term, where the prior's influence on the expected number of steps (which is $\frac{1}{\lambda_n}$  for a geometric prior with parameter  ) is easily interpretable. For instance, setting the prior parameter $\lambda_p = \frac{1}{N}$ encourages the model towards an average of $N$ steps.
+Strongly inspired by PonderNet \cite{banino2021}, we adopted its core ideas to implement a halting mechanism for GCN. We define $\lambda_i^k$ as the conditional probability that node $i$ halts after $k$ message passing steps given that node $i$ has not halted before. Then, the unconditional probability of node $i$ halting after $k$ message passing iterations is
 
-Focusing directly into our implementation, the architecture starts with an initial MLP that processes node features, followed by recurrent GCN propagation steps - similar to AP-GCN authors. A key component is the shared linear halting unit computing logits at each step, which are passed through a sigmoid function to yield the conditional halting probabilities $lambda_n$. The unconditional halting distribution $p_n$  is then derived iteratively from these $\lambda_n$  values, ensuring the probabilities sum to one over the maximum N steps. The training loss combines the expected loss (weighted by $p_n$) and the KL divergence between the learned $p_n$ and the geometric prior $p_G$, scaled by $\beta$. Inference can be performed either by first computing the full distribution p and selecting the step via argmax or sampling, or potentially through the computationally efficient sequential Bernoulli sampling at each step as proposed in the original PonderNet paper.
+$$
+p_i^k = \lambda_i^k \prod_{j=1}^{k-1} (1-\lambda_i^j)
+$$
+
+\noindent which is similar to the geometric distribution but with variable $\lambda$. This would be a valid distribution if we integrated over all possible message passing steps, which is infeasible in practice. For this reason, we define a maximum number of propagation steps $T$ and assign all remaining probability to the last step. This ensures that the $\{p_i^k\}$ for $k\in \{1,...,T\}$ sum to 1. The embedding for node $i$ and therefore implicitly also how many message passing steps are done is then sampled from the random variable $\mathcal{Z}_i$ with probability density distribution $P(\mathcal{Z}_i=\hat{\mathbf{z}}_i^k) = p_i^k$.
+
+The model is trained end-to-end by minimizing the loss function that consists of a sum of two terms weighted by hyperparameter $\beta$: the reconstruction loss and the regularization loss:
+
+$$
+L = \sum_{i=1}^{\mathcal{|V|}} \sum_{k=1}^{T} \underbrace{p_i^k \mathcal{L}(y_i, \hat{y}_i^k)}_{\text{reconstruction}} + \beta \underbrace{KL(p_i^k || p_G(\lambda_p))}_{\text{regularization}}
+$$
+
+\noindent where $|V|$ is the number of nodes in the graph.
+
+\noindent The reconstruction loss per node is the cross-entropy loss averaged over the $T$ steps weighted by their corresponding halting probability $p_n$. The regularization term per node incentivizes the distribution $p_n$ to stay close to a predefined prior geometric distribution $p_G$ with parameter $\lambda_p$. In comparison to AP-GCN, this regularization term has the advantage that it is easily interpretable. In particular, setting the prior parameter $\lambda_p = \frac{1}{N}$ encourages the model towards halting after an average of $N$ steps. A disadvantage of Ponder-AP-GCN, compared to AP-GCN, is that during training it must compute the halting distribution over all $T$ steps for each node, whereas AP-GCN can stop computations as soon as a node halts. However, since all the computations in AP-GCN are implemented using matrix operations to deal with all the nodes simultaneously it is questionable whether this is an actual advantage in practice.
+
+Focusing on our implementation, the model architecture starts with an MLP that processes the node features, followed by the recurrent GCN propagation steps - similar to the AP-GCN. A key component is the shared linear halting unit that computes logits at each step, which are passed through a sigmoid function to yield the conditional halting probabilities $\lambda_n$. The unconditional halting distribution $p_n$ is then derived iteratively from these $\lambda_n$  values, ensuring the probabilities sum to one over the maximum N steps. The training loss combines the expected loss (weighted by $p_n$) and the KL divergence between the learned $p_n$ and the geometric prior $p_G$, scaled by $\beta$. Inference can be performed either by first computing the full distribution p and selecting the step via argmax or sampling, or through the computationally efficient sequential Bernoulli sampling at each step as proposed in the PonderNet paper.
+
 \subsection{Gumbel-AP-GCN}
-We modify the PonderNet implementation slightly. The core idea and implementation remains the same in the sense that we calculate the conditional and unconditional probabilities under the same logic. However, instead of calculating the expected loss, we employ the Gumbel-Softmax technique to draw a differentiable sample of a single halting step from the learned distribution $p_n$ during each training forward pass. Therefore, instead of computing the overall expected loss, we compute it from the output corresponding to the sampled step. This is combined with temperature annealing such that we start with a higher temperature for boosting exploration among steps to softer and more discrete selections once we are further down training. In addition, we set the kl divergence hyperparameter to 0, such that the halting policy is learned solely by optimizing the task performance at the sampled steps without explicit regularization. 
+We modify the PonderNet implementation slightly. The core idea and implementation remains the same in the sense that we calculate the conditional and unconditional probabilities under the same logic. However, instead of calculating the expected loss, we employ the Gumbel-Softmax technique to draw a differentiable sample of a single halting step from the learned distribution $p_n$ during each training forward pass. Therefore, instead of computing the overall expected loss, we compute it from the output corresponding to the sampled step. This is combined with temperature annealing such that we start with a higher temperature for boosting exploration among steps to softer and more discrete selections once we are further down training. In addition, we set the KL divergence hyperparameter to 0, such that the halting policy is learned solely by optimizing the task performance at the sampled steps without explicit regularization. 
 
 The architecture, as mentioned, is similar to PonderNet, with the difference that the loss samples a halt step using a Gumbel-Softmax with annealed temperature $\tau$. The cross entropy then is calculated using only the predictions corresponding to these sampled steps.  We could extend this further by simply applying the efficient sequential Bernoulli sampling to reduce even more the computational load with respect to the previous approaches, in addition, of enriching the state representation for the halting unit. 
 
@@ -137,7 +171,26 @@ We asked Prof. Spinelli, among other questions, why they placed the feature mapp
 \subsection{Datasets}
 \textcolor{red}{Describe the datasets you used and how you obtained them. }
 
-We downloaded the \texttt{Citeseer} \cite{sen2008}, \texttt{Cora-ML} \cite{mccallum2000}, \texttt{PubMed} \cite{namata2012}, \texttt{MS-Academic} \cite{shchur2018}, \texttt{A. Computer}, and \texttt{A. Photo} datasets from the GitHub repository of Spinelli et al. along with the code to load them. The \texttt{A. Computer} and \texttt{A. Photo} datasets are portions of the Amazon co-purchase graph originally presented in \cite{mcauley2015}. In the \texttt{Microsoft Academic} dataset, the edges represent co-authorship while in the \texttt{Citeseer}, \texttt{Cora-ML}, and \texttt{PubMed} datasets, the edges represent citations. All these datasets consists of a single graph and are node classification problems. Only the largest connected component in each dataset is used. The features are bag of words representations of the papers' abstracts. 
+We downloaded the \texttt{Citeseer} \cite{sen2008}, \texttt{Cora-ML} \cite{mccallum2000}, \texttt{PubMed} \cite{namata2012}, \texttt{MS-Academic} \cite{shchur2018}, \texttt{A. Computer}, and \texttt{A. Photo} datasets from the GitHub repository of Spinelli et al. along with the code to load them. The \texttt{A. Computer} and \texttt{A. Photo} datasets are portions of the Amazon co-purchase graph originally presented in \cite{mcauley2015}. In the \texttt{Microsoft Academic} dataset, the edges represent co-authorship while in the \texttt{Citeseer}, \texttt{Cora-ML}, and \texttt{PubMed} datasets, the edges represent citations. All these datasets consists of a single graph and are node classification problems. Only the largest connected component in each dataset is used. The features are bag of words representations of the papers' abstracts. We calculated the statistics for each dataset, as shown in table \ref{tab:dataset_statistics}. Except for a few values in the average degrees, which may be due to rounding, our results are consistent with those reported by Spinelli et al.
+
+\begin{table}[h]
+    \small\sf
+    \setlength{\tabcolsep}{2pt}
+    \caption{Dataset Statistics}
+    \begin{tabular}{l c c c c c c}
+        \toprule
+        Dataset & Classes & Features & Nodes & Edges & Avg. Degree \\
+        \midrule
+        Citeseer & 6 & 3703 & 2110 & 3668 & 6.95 \\
+        Cora-ML & 7 & 2879 & 2810 & 7981 & 11.36 \\
+        PubMed & 3 & 500 & 19717 &44324 &8.99 \\
+        MS-Academic & 15&6805 & 18333 & 81894 & 17.87 \\
+        A.Computer & 10 & 767 & 13381 & 245778 & 73.47 \\
+        A.Photo  & 8 & 745 & 7487 & 119043 & 63.60 \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:dataset_statistics}
+\end{table}
 
 \subsection{Hyperparameters}
 \textcolor{red}{Describe how you set the hyperparameters and what was the source for their value (e.g. paper, code or your guess). }
