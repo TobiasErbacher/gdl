@@ -97,16 +97,16 @@ $$ K_i = \argmin_{k' \in \{1, 2, ..., T\}} \sum_{k=1}^{k'} h_i^k \geq 1-\epsilon
 
 \noindent According to Spinelli et al. the halting probabilities can be combined as
 
-\[
+\begin{equation}
     p_i^k = 
     \begin{cases}
     R_i = 1 - \sum_{k=1}^{K_i - 1} h_i^k & \text{if } k = K_i \text{ or } k = T \\
-    \sum_{k=1}^{k} h_i^k & \text{otherwise}
+    \sum_{l=1}^{k} h_i^l & \text{otherwise}
     \end{cases}
-\]
+    \label{eq:p}
+\end{equation}
 
-\noindent so that the sequence $\{p_i\}$ forms a \textbf{cumulative probability distribution} (CDF) for the halting probabilities $\{h_i\}$. However, the sequence $\{p_i\}$ does not constitute a CDF, because for $\{p_i\}$ to be a valid CDF, it must satisfy the condition $p_i^k = 1$ when $k = K_i$ or $k = T$. This requirement arises from the fact that a CDF must converge to 1 at its maximum value, reflecting the total probability mass. Clearly, the definition by Spinelli et al., in general, violates that constraint. It could be that the error arose because AP-GCN is inspired by Graves \cite{graves2017} where in equation 6, Graves defines the $\{p_t\}$ to form a \textbf{probability mass function} (PMF) for the $\{h_t\}$ in a similar way.
-
+\noindent so that the sequence $\{p_i\}$ forms a \textbf{cumulative probability distribution} (CDF) for the halting probabilities $\{h_i\}$. However, the sequence $\{p_i\}$ does not constitute a CDF, because for $\{p_i\}$ to be a valid CDF, it must satisfy the condition $p_i^k = 1$ when $k = K_i$ or $k = T$. This requirement arises from the fact that a CDF must converge to 1 at its maximum value, reflecting the total probability mass. Clearly, the definition by Spinelli et al., in general, violates that constraint. It could be that the error arose because AP-GCN is inspired by Graves \cite{graves2017} where in equation 6, Graves defines the $\{p_t\}$ to form a \textbf{probability mass function} (PMF) for the $\{h_t\}$ in a similar way. We did not address this issue in the replication code. In the original of equation \ref{eq:p} by Spinelli et al. (equation 8) there is a second mistake: they let the sum go from $k=1$ to $K_i$ in the otherwise branch. However, this is just a typo in the paper, in the code they do it as we describe it in equation \ref{eq:p}.
 The output of the AP-GCN message passing layer for node $i$ is $\hat{\bf{z}}_i$ which is defined as
 
 $$ 
@@ -138,9 +138,10 @@ $$
 
 The model is trained end-to-end by minimizing the loss function that consists of a sum of two terms weighted by hyperparameter $\beta$: the reconstruction loss and the regularization loss:
 
-$$
-L = \sum_{i=1}^{\mathcal{|V|}} \sum_{k=1}^{T} \underbrace{p_i^k \mathcal{L}(y_i, \hat{y}_i^k)}_{\text{reconstruction}} + \beta \underbrace{KL(p_i^k || p_G(\lambda_p))}_{\text{regularization}}
-$$
+\begin{equation}
+L = \sum_{i=1}^{\mathcal{|V|}} \sum_{k=1}^{T} \underbrace{p_i^k \mathcal{L}(y_i, \hat{y}_i^k)}_{\text{reconstruction}} + \beta \underbrace{KL(\mathbf{p}_i || p_G(\lambda_p))}_{\text{regularization}}
+\label{eq:ponder-loss}
+\end{equation}
 
 \noindent where $|V|$ is the number of nodes in the graph.
 
@@ -149,9 +150,23 @@ $$
 Focusing on our implementation, the model architecture starts with an MLP that processes the node features, followed by the recurrent GCN propagation steps - similar to the AP-GCN. A key component is the shared linear halting unit that computes logits at each step, which are passed through a sigmoid function to yield the conditional halting probabilities $\lambda_n$. The unconditional halting distribution $p_n$ is then derived iteratively from these $\lambda_n$  values, ensuring the probabilities sum to one over the maximum N steps. The training loss combines the expected loss (weighted by $p_n$) and the KL divergence between the learned $p_n$ and the geometric prior $p_G$, scaled by $\beta$. Inference can be performed either by first computing the full distribution p and selecting the step via argmax or sampling, or through the computationally efficient sequential Bernoulli sampling at each step as proposed in the PonderNet paper.
 
 \subsection{Gumbel-AP-GCN}
-We modify the PonderNet implementation slightly. The core idea and implementation remains the same in the sense that we calculate the conditional and unconditional probabilities under the same logic. However, instead of calculating the expected loss, we employ the Gumbel-Softmax technique to draw a differentiable sample of a single halting step from the learned distribution $p_n$ during each training forward pass. Therefore, instead of computing the overall expected loss, we compute it from the output corresponding to the sampled step. This is combined with temperature annealing such that we start with a higher temperature for boosting exploration among steps to softer and more discrete selections once we are further down training. In addition, we set the KL divergence hyperparameter to 0, such that the halting policy is learned solely by optimizing the task performance at the sampled steps without explicit regularization. 
+The Gumbel-AP-GCN architecture is based on the Ponder-AP-GCN architecture but instead of calculating the loss as expectation over the halting steps as in equation \ref{eq:ponder-loss}, a halting step $h_i$ for node $i$ is sampled from the learned distribution $\mathbf{p}_i$ of halting steps. We use the Gumbel-Softmax technique \cite{Maddison2017, Jang2017} to draw a sample in a differentiable way. Thus, the halting step for node $i$ is defined as
 
-The architecture, as mentioned, is similar to PonderNet, with the difference that the loss samples a halt step using a Gumbel-Softmax with annealed temperature $\tau$. The cross entropy then is calculated using only the predictions corresponding to these sampled steps.  We could extend this further by simply applying the efficient sequential Bernoulli sampling to reduce even more the computational load with respect to the previous approaches, in addition, of enriching the state representation for the halting unit. 
+$$
+    h_i = \arg\max \text{GumbelSoftmax}(\{\log p_i^1,...,\log p_i^{T}\}, \tau)
+$$
+
+\noindent where $\tau$ is the temperature parameter controlling how sharp (low $\tau$) or smooth (high $\tau$) the output distribution is. We apply temperature annealing by starting with a higher temperature to encourage exploration in the early stages of training, and gradually lowering it to produce less uniform distributions as training progresses.
+
+Instead of computing the expected loss over all halting steps like in Ponder-AP-GCN, we compute it from the output corresponding to the sampled step:
+
+$$
+L = \sum_{i=1}^{\mathcal{|V|}} \underbrace{p_i^{h_i} \mathcal{L}(y_i, \hat{y}_i^{h_i})}_{\text{reconstruction}} + \beta \underbrace{KL(\mathbf{p}_i || p_G(\lambda_p))}_{\text{regularization}}
+$$
+
+\noindent The KL divergence hyperparameter is set to 0, so that the halting policy is learned solely by optimizing the task performance at the sampled steps without explicit regularization. 
+
+The inference is implemented similar to the training. A halting step is sampled using the GumbelSoftmax function and the output corresponding to that halting steps is returned. As in the Ponder-AP-GCN, the inference could be implemented more efficiently using sequential Bernoulli sampling.
 
 \subsection{Co-AP-GCN}
 

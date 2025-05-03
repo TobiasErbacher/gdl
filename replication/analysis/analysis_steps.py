@@ -17,7 +17,7 @@ mpl.rcParams.update(MATPLOTLIBPARAMS)
 
 # Choose the datasets and model for which the distribution of the number of steps is plotted
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
-MODEL = Model.SPINELLI
+MODEL = Model.Gumbel_AP_GCN
 
 # Not necessary to change this
 PROJECT_NAME = f"{MODEL.label}"
@@ -69,6 +69,17 @@ def plot_step_distribution_per_dataset(steps_per_dataset: Dict[str, List[List[in
     for dataset_name, steps_list in steps_per_dataset.items():
         steps_list = np.array(steps_list)
         step_distribution_per_dataset[dataset_name] = np.average(steps_list, axis=0)
+
+    # Have the legend in a consistent order
+    if len(step_distribution_per_dataset) == 6:
+        desired_order = [Dataset.CITESEER.label,
+                         Dataset.CORAML.label,
+                         Dataset.PUBMED.label,
+                         Dataset.MSACADEMIC.label,
+                         Dataset.APHOTO.label,
+                         Dataset.ACOMPUTER.label]
+
+        step_distribution_per_dataset = {key: step_distribution_per_dataset[key] for key in desired_order}
 
     fig, ax = plt.subplots()
     for dataset_name, avg_steps in step_distribution_per_dataset.items():
