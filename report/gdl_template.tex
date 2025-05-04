@@ -93,7 +93,9 @@ $$h^k_i = \sigma(\textbf{Q}\textbf{z}^k_i + q)$$
 
 \noindent $\textbf{Q}$ and $q$ are trainable parameters and are shared between all nodes. There are two ways the propagation can stop. Firstly, the propagation stops if the number of propagations reaches a predefined maximum number of allowed steps $T$. Secondly, the propagation stops when the propagation budget has been used up. The budget is defined as $1-\epsilon$ where $\epsilon$ is a hyperparameter set to a small value. When $k=K_i$ the budget for node $i$ has been reached after $k$ iterations and the propagation stops. 
 
-$$ K_i = \argmin_{k' \in \{1, 2, ..., T\}} \sum_{k=1}^{k'} h_i^k \geq 1-\epsilon $$
+\begin{equation}
+K_i = \min\{ k \le T \mid a_i^k = 1 \},
+\end{equation}
 
 \noindent According to Spinelli et al. the halting probabilities can be combined as
 
@@ -123,8 +125,43 @@ $$ \mathcal{\hat{L}} = \mathcal{L} + \alpha \sum_{i\in \mathcal{V}} \mathcal{S}_
 \subsection{RL-AP-GCN}
 The dynamics of Graph Neural Network propagation, particularly the phenomenon where node representations tend to homogenize and converge, which can derive in over-smoothing, can serve as a signal for an adaptive halting mechanism to find an optimal halting point without the need for regularization. An RL agent, observing the node's evolving embedding, can learn to recognize when the representation changes minimally between propagation steps and halt, ideally, in the maximum expressiveness of that particular node. This stabilization indicates diminishing returns from further message passing, suggesting sufficient relevant neighborhood information has been aggregated at certain point. Consequently, the policy network can learn, guided purely by the task reward (e.g., classification accuracy), to halt propagation when this representational convergence occurs. This approach does not need for explicit regularization terms or penalties based solely on the number of steps, grounding the halting decision more organically in the information saturation relevant to solving the task, rather than an external computational budget.
 
-The current reinforcement learning implementation treats each node as an Actor Critic agent but policy and value networks are shared among all nodes. We first compute the initial node embeddings. Then, a loop begins where, at each step, the shared policy network (Actor) evaluates the current embedding of active nodes to output a halting probability, while a shared value network (Critic) estimates the expected future reward (baseline) from that state. A halting action is sampled (incorporating exploration noise during training), and propagation continues for non-halted nodes. Upon halting (or reaching the maximum iterations), a reward is calculated based primarily on the final classification correctness, and the system learns by back propagating a combined loss: a supervised loss for the GNN's classification output, and an RL loss comprising a policy gradient term (using the advantage calculated as actual reward minus the Critic's baseline), a value function loss for the Critic, and an entropy bonus to encourage exploration.
+This reinforcement learning implementation treats each node as an Actor Critic agent but policy and value networks are shared among all nodes. We first compute the initial node embeddings. Then, a loop begins where, at each step, the shared policy network (Actor) evaluates the current embedding of active nodes to output a halting probability, while a shared value network (Critic) estimates the expected future reward (baseline) from that state. A halting action is sampled (incorporating exploration noise during training), and propagation continues for non-halted nodes. Upon halting (or reaching the maximum iterations), a reward is calculated based primarily on the final classification correctness, and the system learns by back propagating a combined loss: a supervised loss for the GNN's classification output, and an RL loss comprising a policy gradient term (using the advantage calculated as actual reward minus the Critic's baseline), a value function loss for the Critic, and an entropy bonus to encourage exploration. To be more precise, I proceed to describe the corresponding operations: 
 
+\paragraph{Halting policy.}
+Let $\mathbf{z}_i^{k}\in\mathbb{R}^h$ be the embedding of node $i$ after $k$ message‑passing iterations. At every step the policy network produces the halting probability:
+\begin{equation}
+\pi_i^{k}=\sigma\bigl(g{\theta}(\mathbf{z}_i^{k})\bigr)
+\end{equation}
+where the parameters $\theta$ are shared across all nodes. In addition, exploration noise is injected by perturbing $\pi_i^{k}$ with Gaussian noise that decays exponentially with the epoch number. A Bernoulli action is sampled
+\begin{equation}
+a_i^{k} \sim \operatorname{Bernoulli}(\pi_i^{k}) ,
+\end{equation}
+with $a_i^{k}=1$ meaning \emph{halt}. Propagation for node $i$ stops at the first step such that:
+\begin{equation}
+K_i = \min\{ k \le T \mid a_i^k = 1 \},
+\end{equation}
+where $T$ is a hard cap on the number of iterations.
+
+\paragraph{Reward and advantage.}
+After halting, node $i$ receives a reward:
+\begin{equation}
+r_i = \mathbb{I}[\hat{y}i = y_i] - cK_i ,
+\end{equation}
+where $c\ge 0$ is the computation‑penalty coefficient - that we actually set to 0 during our experiments for the previously explained reasons. A shared value network $V_{\phi}$ provides a baseline, and the resulting advantage is
+\begin{equation}
+A_i = r_i - V_{\phi}(\mathbf{z}_i^{K_i}).
+\end{equation}
+
+\paragraph{Loss function.}
+Denote by $\mathcal{V}$ the set of training nodes. The overall objective $\mathcal{V}$ to be minimized combines a standard supervised term (plus L2 regularization $\mathcal{L}_{\text{reg}}$ applied separately) and three reinforcement‑learning components, averaged over the training nodes:
+\begin{align}
+\mathcal{L} = &\left( \frac{1}{|\mathcal{V}|} \sum_{i\in\mathcal{V}} \mathcal{L}_{\text{NLL}}(y_i, \hat{y}_i) \right) + \mathcal{L}_{\text{reg}} \label{eq:supervised_loss_corr}\\
+ &- \frac{1}{|\mathcal{V}|} \sum_{i\in\mathcal{V}} \log\pi_{i}^{K_i} A_i^{\text{detach}} \label{eq:policy_loss_corr}\\
+ &+ \lambda_v \frac{1}{|\mathcal{V}|} \sum_{i\in\mathcal{V}} \bigl(r_i - V_{\phi}(\mathbf{z}_i^{K_i})\bigr)^2 \label{eq:value_loss_corr}\\
+ &- \lambda_e \frac{1}{|\mathcal{V}|} \sum_{i\in\mathcal{V}} H(\pi_i^{K_i}) \label{eq:entropy_loss_corr}
+\end{align}
+with $H(p)= -\bigl[p\log p + (1-p)\log(1-p)\bigr]$ the binary entropy. Here $\mathcal{L}_{\text{NLL}}(y_i, \hat{y}_i)$ is the Negative Log-Likelihood loss for node $i$, and $\mathcal{L}_{\text{reg}}$ represents the L2 regularization term (e.g., $\frac{\lambda_{\text{reg}}}{2} \lVert\theta_{\text{reg}}\rVert^2$ applied to specific parameters $\theta_{\text{reg}}$). $A_i^{\text{detach}}$ represents the advantage $r_i - V_{\phi}(\mathbf{z}_i^{K_i})$ where the gradient is not propagated back through the value function estimate $V_{\phi}(\mathbf{z}_i^{K_i})$ during the policy update (as indicated by `detach` - to ensure stable training by preventing the policy update from interfering with the value function update, as the policy might try to manipulate the value estimates to make its own actions look better, rather than simply improving the policy based on the current value estimate.). Hyper‑parameters $\lambda_v$ (corresponding to `value\_weight` in the code) and $\lambda_e$ (corresponding to `entropy\_weight`) weight the value‑regression and entropy‑regularization terms, respectively. The signs reflect the objective minimization: the negative sign in eq.~\eqref{eq:policy_loss_corr} implements policy gradient ascent (maximizing expected rewards), and the negative sign in eq.~\eqref{eq:entropy_loss_corr} encourages entropy maximization (promoting exploration).
+    
 There are several extensions that could enhance the implementation. The sparse, delayed reward signal could be augmented with denser, intermediate rewards reflecting confidence gains at each step. The RL state representation could be enriched beyond the current embedding to include neighboring node embeddings difference or a history of embeddings (using RNNs or attention), giving the policy more context. Employing more advanced RL algorithms such as PPO for policy updates or GAE for advantage estimation could improve training stability and sample efficiency compared to the current REINFORCE-with-baseline approach. Finally, refining the training strategy, perhaps by alternating between supervised and RL optimization steps, could further stabilize learning and potentially improve final performance.
 
 \subsection{Ponder-AP-GCN}
