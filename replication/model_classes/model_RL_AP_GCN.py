@@ -322,7 +322,6 @@ def get_RL_AP_GCN_configuration(dataset, dataset_name):
     weight_decay = 0.008
 
     if dataset_name == Dataset.APHOTO.label or dataset_name == Dataset.ACOMPUTER.label:
-        # amazon datasets use weight_decay=0 according to the author's paper and code
         weight_decay = 0
 
     integrator = RL_AP_GCN_Integrator()

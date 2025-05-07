@@ -108,12 +108,13 @@ K_i = \min\{ k \le T \mid a_i^k = 1 \},
     \label{eq:p}
 \end{equation}
 
-\noindent so that the sequence $\{p_i\}$ forms a \textbf{cumulative probability distribution} (CDF) for the halting probabilities $\{h_i\}$. However, the sequence $\{p_i\}$ does not constitute a CDF, because for $\{p_i\}$ to be a valid CDF, it must satisfy the condition $p_i^k = 1$ when $k = K_i$ or $k = T$. This requirement arises from the fact that a CDF must converge to 1 at its maximum value, reflecting the total probability mass. Clearly, the definition by Spinelli et al., in general, violates that constraint. It could be that the error arose because AP-GCN is inspired by Graves \cite{graves2017} where in equation 6, Graves defines the $\{p_t\}$ to form a \textbf{probability mass function} (PMF) for the $\{h_t\}$ in a similar way. We did not address this issue in the replication code. In the original of equation \ref{eq:p} by Spinelli et al. (equation 8) there is a second mistake: they let the sum go from $k=1$ to $K_i$ in the otherwise branch. However, this is just a typo in the paper, in the code they do it as we describe it in equation \ref{eq:p}.
+\noindent so that the sequence $\{p_i\}$ forms a \textbf{cumulative probability distribution} (CDF) for the halting probabilities $\{h_i\}$. However, the sequence $\{p_i\}$ does not constitute a CDF, because for $\{p_i\}$ to be a valid CDF, it must satisfy the condition $p_i^k = 1$ when $k = K_i$ or $k = T$. This requirement arises from the fact that a CDF must converge to 1 at its maximum value, reflecting the total probability mass. Clearly, the definition by Spinelli et al., in general, violates that constraint. It could be that the error arose because AP-GCN is inspired by Graves \cite{graves2017} where in equation 6, Graves defines the $\{p_t\}$ to form a \textbf{probability mass function} (PMF) for the $\{h_t\}$ in a similar way. We did not address this issue in the replication code. In the original of \autoref{eq:p} by Spinelli et al. (equation 8) there is a second mistake: they let the sum go from $k=1$ to $K_i$ in the otherwise branch. However, this is just a typo in the paper, in the code they do it as we describe it in \autoref{eq:p}.
 The output of the AP-GCN message passing layer for node $i$ is $\hat{\bf{z}}_i$ which is defined as
 
-$$ 
+\begin{equation}
 \hat{\mathbf{z}}_i = \frac{1}{K_i} \sum_{k=1}^{K_i} p_i^k \mathbf{z}^k_i + (1-p^k_i) \mathbf{z}_i^{k-1} 
-$$
+\label{eq:aggregate}
+\end{equation}
 
 \noindent Although Spinelli et al. do not state it, this way of accumulating the contribution of the embeddings from the different propagation steps likely is inspired by the soft-conditional output from Scardapane et al. \cite{scardapane2020}.
 
@@ -123,7 +124,9 @@ $$ \mathcal{\hat{L}} = \mathcal{L} + \alpha \sum_{i\in \mathcal{V}} \mathcal{S}_
 
 
 \subsection{RL-AP-GCN}
-The dynamics of Graph Neural Network propagation, particularly the phenomenon where node representations tend to homogenize and converge, which can derive in over-smoothing, can serve as a signal for an adaptive halting mechanism to find an optimal halting point without the need for regularization. An RL agent, observing the node's evolving embedding, can learn to recognize when the representation changes minimally between propagation steps and halt, ideally, in the maximum expressiveness of that particular node. This stabilization indicates diminishing returns from further message passing, suggesting sufficient relevant neighborhood information has been aggregated at certain point. Consequently, the policy network can learn, guided purely by the task reward (e.g., classification accuracy), to halt propagation when this representational convergence occurs. This approach does not need for explicit regularization terms or penalties based solely on the number of steps, grounding the halting decision more organically in the information saturation relevant to solving the task, rather than an external computational budget.
+TODO: Explain role of exploration factor
+
+In Graph Neural Networks, node representations tend to homogenize and converge as message passing progresses, a phenomenon known as over-smoothing. Rather than treating this as a limitation, this behavior can serve as a useful signal for an adaptive halting mechanism. Specifically, a reinforcement learning (RL) agent can observe how a node's embedding evolves across propagation steps and learn to halt when changes become minimal, ideally capturing the point of maximum expressiveness for that node. This stabilization suggests diminishing returns from additional message passing, indicating that sufficient neighborhood information has already been integrated. By relying solely on the task reward (e.g., classification accuracy), the policy network can learn to stop propagation at this convergence point, without requiring explicit regularization terms or penalties tied to the number of steps. In doing so, the halting decision becomes a function of information saturation rather than an externally imposed computational constraint.
 
 This reinforcement learning implementation treats each node as an Actor Critic agent but policy and value networks are shared among all nodes. We first compute the initial node embeddings. Then, a loop begins where, at each step, the shared policy network (Actor) evaluates the current embedding of active nodes to output a halting probability, while a shared value network (Critic) estimates the expected future reward (baseline) from that state. A halting action is sampled (incorporating exploration noise during training), and propagation continues for non-halted nodes. Upon halting (or reaching the maximum iterations), a reward is calculated based primarily on the final classification correctness, and the system learns by back propagating a combined loss: a supervised loss for the GNN's classification output, and an RL loss comprising a policy gradient term (using the advantage calculated as actual reward minus the Critic's baseline), a value function loss for the Critic, and an entropy bonus to encourage exploration. To be more precise, I proceed to describe the corresponding operations: 
 
@@ -147,7 +150,7 @@ After halting, node $i$ receives a reward:
 \begin{equation}
 r_i = \mathbb{I}[\hat{y}i = y_i] - cK_i ,
 \end{equation}
-where $c\ge 0$ is the computation‑penalty coefficient - that we actually set to 0 during our experiments for the previously explained reasons. A shared value network $V_{\phi}$ provides a baseline, and the resulting advantage is
+where $c\ge 0$ is the computation penalty coefficient - that we actually set to 0 during our experiments for the previously explained reasons. A shared value network $V_{\phi}$ provides a baseline, and the resulting advantage is
 \begin{equation}
 A_i = r_i - V_{\phi}(\mathbf{z}_i^{K_i}).
 \end{equation}
@@ -184,10 +187,13 @@ L = \sum_{i=1}^{\mathcal{|V|}} \sum_{k=1}^{T} \underbrace{p_i^k \mathcal{L}(y_i,
 
 \noindent The reconstruction loss per node is the cross-entropy loss averaged over the $T$ steps weighted by their corresponding halting probability $p_n$. The regularization term per node incentivizes the distribution $p_n$ to stay close to a predefined prior geometric distribution $p_G$ with parameter $\lambda_p$. In comparison to AP-GCN, this regularization term has the advantage that it is easily interpretable. In particular, setting the prior parameter $\lambda_p = \frac{1}{N}$ encourages the model towards halting after an average of $N$ steps. A disadvantage of Ponder-AP-GCN, compared to AP-GCN, is that during training it must compute the halting distribution over all $T$ steps for each node, whereas AP-GCN can stop computations as soon as a node halts. However, since all the computations in AP-GCN are implemented using matrix operations to deal with all the nodes simultaneously it is questionable whether this is an actual advantage in practice.
 
-Focusing on our implementation, the model architecture starts with an MLP that processes the node features, followed by the recurrent GCN propagation steps - similar to the AP-GCN. A key component is the shared linear halting unit that computes logits at each step, which are passed through a sigmoid function to yield the conditional halting probabilities $\lambda_n$. The unconditional halting distribution $p_n$ is then derived iteratively from these $\lambda_n$  values, ensuring the probabilities sum to one over the maximum N steps. The training loss combines the expected loss (weighted by $p_n$) and the KL divergence between the learned $p_n$ and the geometric prior $p_G$, scaled by $\beta$. Inference can be performed either by first computing the full distribution p and selecting the step via argmax or sampling, or through the computationally efficient sequential Bernoulli sampling at each step as proposed in the PonderNet paper.
+Focusing on our implementation, the model architecture starts with an MLP that processes the node features, followed by the recurrent GCN propagation steps - similar to the AP-GCN. A key component is the shared linear halting unit that computes logits at each step, which are passed through a sigmoid function to yield the conditional halting probabilities $\lambda_n$. The unconditional halting distribution $p_n$ is then derived iteratively from these $\lambda_n$  values, ensuring the probabilities sum to one over the maximum N steps. The training loss combines the expected loss (weighted by $p_n$) and the KL divergence between the learned $p_n$ and the geometric prior $p_G$, scaled by $\beta$. Inference can be performed either by first computing the full distribution p and selecting the step via argmax or sampling, or through the computationally efficient sequential Bernoulli sampling at each step as proposed in the PonderNet paper. We implemented the first approach and use the temperature parameter to control the randomness in the model's output. A low temperature makes the model more likely to select high-probability halting steps from $\mathbf{p}_i$, whereas a high temperature increases the likelihood of selecting lower-probability halting steps.
 
 \subsection{Gumbel-AP-GCN}
-The Gumbel-AP-GCN architecture is based on the Ponder-AP-GCN architecture but instead of calculating the loss as expectation over the halting steps as in equation \ref{eq:ponder-loss}, a halting step $h_i$ for node $i$ is sampled from the learned distribution $\mathbf{p}_i$ of halting steps. We use the Gumbel-Softmax technique \cite{Maddison2017, Jang2017} to draw a sample in a differentiable way. Thus, the halting step for node $i$ is defined as
+TODO:  explain role of $\tau_{\text{initial}}$, $\tau_{\text{warmup}}$, $\tau_{\text{decay}}$, and $\tau_{\text{final}}$ 
+
+
+The Gumbel-AP-GCN architecture is based on the Ponder-AP-GCN architecture but instead of calculating the loss as expectation over the halting steps as in \autoref{eq:ponder-loss}, a halting step $h_i$ for node $i$ is sampled from the learned distribution $\mathbf{p}_i$ of halting steps. We use the Gumbel-Softmax technique \cite{Maddison2017, Jang2017} to draw a sample in a differentiable way. Thus, the halting step for node $i$ is defined as
 
 $$
     h_i = \arg\max \text{GumbelSoftmax}(\{\log p_i^1,...,\log p_i^{T}\}, \tau)
@@ -223,7 +229,7 @@ We asked Prof. Spinelli, among other questions, why they placed the feature mapp
 \subsection{Datasets}
 \textcolor{red}{Describe the datasets you used and how you obtained them. }
 
-We downloaded the \texttt{Citeseer} \cite{sen2008}, \texttt{Cora-ML} \cite{mccallum2000}, \texttt{PubMed} \cite{namata2012}, \texttt{MS-Academic} \cite{shchur2018}, \texttt{A. Computer}, and \texttt{A. Photo} datasets from the GitHub repository of Spinelli et al. along with the code to load them. The \texttt{A. Computer} and \texttt{A. Photo} datasets are portions of the Amazon co-purchase graph originally presented in \cite{mcauley2015}. In the \texttt{Microsoft Academic} dataset, the edges represent co-authorship while in the \texttt{Citeseer}, \texttt{Cora-ML}, and \texttt{PubMed} datasets, the edges represent citations. All these datasets consists of a single graph and are node classification problems. Only the largest connected component in each dataset is used. The features are bag of words representations of the papers' abstracts. We calculated the statistics for each dataset, as shown in table \ref{tab:dataset_statistics}. Except for a few values in the average degrees, which may be due to rounding, our results are consistent with those reported by Spinelli et al.
+We downloaded the \texttt{Citeseer} \cite{sen2008}, \texttt{Cora-ML} \cite{mccallum2000}, \texttt{PubMed} \cite{namata2012}, \texttt{MS-Academic} \cite{shchur2018}, \texttt{A. Computer}, and \texttt{A. Photo} datasets from the GitHub repository of Spinelli et al. along with the code to load them. The \texttt{A. Computer} and \texttt{A. Photo} datasets are portions of the Amazon co-purchase graph originally presented in \cite{mcauley2015}. In the \texttt{Microsoft Academic} dataset, the edges represent co-authorship while in the \texttt{Citeseer}, \texttt{Cora-ML}, and \texttt{PubMed} datasets, the edges represent citations. All these datasets consists of a single graph and are node classification problems. Only the largest connected component in each dataset is used. The features are bag of words representations of the papers' abstracts. We calculated the statistics for each dataset, as shown in \autoref{tab:dataset_statistics}. Except for a few values in the average degrees, which may be due to rounding, our results are consistent with those reported by Spinelli et al.
 
 \begin{table}[h]
     \small\sf
@@ -247,7 +253,7 @@ We downloaded the \texttt{Citeseer} \cite{sen2008}, \texttt{Cora-ML} \cite{mccal
 \subsection{Hyperparameters}
 \textcolor{red}{Describe how you set the hyperparameters and what was the source for their value (e.g. paper, code or your guess). }
 
-For the experiments with AP-GCN we used the hyperparameters described by Spinelli et al. They are described in appendix \ref{lab:hyper-ap-gcn}.
+In the experiments with AP-GCN we used the hyperparameters described by Spinelli et al. They are described in appendix \ref{lab:hyper-ap-gcn}. The hyperparameters used in the experiments with RL-AP-GCN, Ponder-AP-GCN, and Gumbel-AP-GCN are available in appendices \ref{lab:hyper-rl-gcn}, \ref{lab:hyper-ponder-gcn}, and \ref{lab:hyper-gumbel-gcn}. We did not perform extensive hyperparameter optimization for RL-AP-GCN, Ponder-AP-GCN, and Gumbel-AP-GCN. In fact, we mostly tested each model on a single dataset and once we obtained reasonably good hyperparameters we reused them for the other datasets. The only exception is the weight decay, which was set to a different value for the Amazon datasets compared to the other datasets.
 
 \subsection{Experimental setup}
 \textcolor{red}{Explain how you ran your experiments, e.g. the CPU/GPU resources and provide the link to your code and notebooks.}
@@ -287,7 +293,7 @@ The experiments were conducted on a MacBook Pro with Apple M2 Pro Chip and 16 GB
     \label{tab:table}
 \end{table*}
 
-Use figures, plots and tables (like \autoref{tab:table}) to present your results in a nice and readable way.
+\textcolor{red}{Use figures, plots and tables (like \autoref{tab:table}) to present your results in a nice and readable way.}
 
 We report the results of our experiments with the AP-GCN, Graph PonderNet, RL, and CoGNN architectures. For each model architecture we report the distribution of the halting steps, i.e., the steps at which each node halts. Since we have data from 100 runs per model architecture, we first average the halting steps for each node over the 100 runs and then plot the distribution obtained using kernel density estimation (KDE) over these averaged halting steps per node. Note that because of the averaging and the KDE there can be probability mass at non-integer values even though in reality all the models can only halt after an integer number of steps. This approach follows the methodology used by Spinelli et al.
 
@@ -405,6 +411,9 @@ We report the results of our experiments with the AP-GCN, Graph PonderNet, RL, a
 \textcolor{red}{Here you can express your judgments and draw your conclusions based on the  evidences produced on the previous sections.
 Try to summarize the achievements of your project and its limits, suggesting (when appropriate) possible extensions and future works.}
 
+While AP-GCN works well empirically, some of its choices are hard to justify from a theoretical point of view in our opinion. For instance, Spinelli et al. call $h_i^k$ the probability that a node should halt after $k$ iterations. However, this is actually not what happens, because a node halts when the propagation budget is used up or the maximum number of propagation steps is reached. For instance, assume we have $\mathbf{h}_i = [0.3, 0.4, 0.25]$ and propagation budget $0.9$. AP-GCN will not make node $i$ halt with probability $0.3$ after the first step. In fact, it will never halt after the first step. It will only halt after the third step when the propagation budget is used up. Similarly, the way the embeddings are aggregated over the steps in \autoref{eq:aggregate} has no real theoretical justification.
+
+
 \clearpage
 % Bibliography
 \bibliography{bibliography}
@@ -414,10 +423,22 @@ Try to summarize the achievements of your project and its limits, suggesting (wh
 \appendix
 
 \section{Hyperparameters}
+The maximum number of steps $T$ was set to 10 for all experiments.
 
 \subsection{AP-GCN}
 \label{lab:hyper-ap-gcn}
-We use 2 feature transformation layers, a dropout rate of 0.5, 64 hidden units, and the Adam optimizer with learning rate 0.01. The maximum number of steps $T$ was set to 10. We applied $L2$ regularization with coefficient 0.008 on the parameters of the first layer. For the \texttt{A. Photo} and \texttt{A. Computer} no regularization was used.
+We use 2 feature transformation layers, a dropout rate of 0.5, 64 hidden units, and the Adam optimizer with learning rate 0.01. We applied $L2$ regularization with coefficient 0.008 on the parameters of the first layer. For the \texttt{A. Photo} and \texttt{A. Computer} no regularization was used.
 
+\subsection{RL-AP-GCN}
+\label{lab:hyper-rl-gcn}
+We used the Adam optimizer with a learning rate of 0.01. The model employs a dropout rate of 0.5 and 64 hidden units. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the \texttt{A. Photo} and \texttt{A. Computer} datasets, where no regularization was used. The entropy weight was set to 0.01, and the value weight to 0.5. Gradient norm clipping was applied across all model parameters with a maximum norm of 1.0. Additionally, we set the computation penalty to 0, used an exploration factor of 0.01, and did not employ any scheduling for the exploration penalty.
+
+\subsection{Ponder-AP-GCN}
+\label{lab:hyper-ponder-gcn}
+We used the Adam optimizer with a learning rate of 0.01. The model incorporates a dropout rate of 0.5, an edge dropout rate of 0.3, and 64 hidden units. Edge dropout was applied only in the section focused on adaptive message propagation. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the \texttt{A. Photo} and \texttt{A. Computer} datasets, where no regularization was used. We set $\beta$ to 0.01 and $\lambda_p$ to 0.2. During inference, a temperature value of 5.0 was used.
+
+\subsection{Gumbel-AP-GCN}
+\label{lab:hyper-gumbel-gcn}
+We employed the Adam optimizer with a learning rate of 0.01. The model uses a dropout rate of 0.5, an edge dropout rate of 0.3, and 64 hidden units. Edge dropout was applied exclusively in the adaptive message propagation component. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the \texttt{A. Photo} and \texttt{A. Computer} datasets, where no regularization was used. We set $\beta$ to 0, indicating that the model learns without a geometric prior, rendering $\lambda_p$ irrelevant. During training we use a scheduler for $\tau$ with $\tau_{\text{initial}} = 10.0$, $\tau_{\text{warmup}} = 20.0$, $\tau_{\text{decay}} = 50.0$, and $\tau_{\text{final}} = 1.0$. During evaluation, $\tau$ was fixed at 0.01.
 
 \end{document}

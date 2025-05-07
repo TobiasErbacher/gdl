@@ -150,7 +150,7 @@ centering]{geometry}
     \end{minipage}\hfill
     \begin{minipage}[t]{4.5cm}
   \vskip 12.5pt%
-    {\hfill\raggedright\textbf{GDL 2023}\\[0.1cm]%
+    {\hfill\raggedright\textbf{GDL 2025}\\[0.1cm]%
     \hfill\small Group id:~~\groupid\par%
     \hfill\small Project id:~~\projectid}%
     \end{minipage}
