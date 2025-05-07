@@ -135,7 +135,7 @@ Let $\mathbf{z}_i^{k}\in\mathbb{R}^h$ be the embedding of node $i$ after $k$ mes
 \begin{equation}
 \pi_i^{k}=\sigma\bigl(g{\theta}(\mathbf{z}_i^{k})\bigr)
 \end{equation}
-where the parameters $\theta$ are shared across all nodes. In addition, exploration noise is injected by perturbing $\pi_i^{k}$ with Gaussian noise that decays exponentially with the epoch number. A Bernoulli action is sampled
+where the parameters $\theta$ are shared across all nodes. In addition, exploration noise, with the corresponding exploration factor hyperparameter, it is injected by perturbing $\pi_i^{k}$ with Gaussian noise that decays exponentially with the epoch number.This means that even if the policy network is fairly certain a node should continue propagating, the added noise might, for example, push noise high enough for the node to halt, and vice-versa; resulting in a broader exploration of halting points. A Bernoulli action is sampled
 \begin{equation}
 a_i^{k} \sim \operatorname{Bernoulli}(\pi_i^{k}) ,
 \end{equation}
@@ -199,7 +199,12 @@ $$
     h_i = \arg\max \text{GumbelSoftmax}(\{\log p_i^1,...,\log p_i^{T}\}, \tau)
 $$
 
-\noindent where $\tau$ is the temperature parameter controlling how sharp (low $\tau$) or smooth (high $\tau$) the output distribution is. We apply temperature annealing by starting with a higher temperature to encourage exploration in the early stages of training, and gradually lowering it to produce less uniform distributions as training progresses.
+\noindent Where $\tau$ is the temperature parameter controlling how sharp (low $\tau$) or smooth (high $\tau$) the output distribution is. We apply temperature annealing by starting with a higher temperature $\tau_{\text{initial}}$ to encourage a uniform exploration in the early stages of training. $\tau_{\text{warmup}}$ defines the number of epochs during which the temperature is kept constant at $\tau_{\text{initial}}$. Gradually it is lowered to produce less uniform distributions as training progresses - $\tau_{\text{decay}}$ specifies then the number of epochs over which the temperature is linearly annealed from $\tau_{\text{initial}}$ to its $\tau_{\text{final}}$.
+Therefore, $\tau$ = $\tau_{\text{initial}}$ during \textit{warmup} period, $\tau$ = $\tau_{\text{final}}$ after \textit{warmup} and \textit{decay}, and as formulated below in the middle of both phases:
+
+$$
+\tau = \tau_{\text{initial}} - \frac{epoch - \tau_{\text{warmup}}}{\tau_{\text{decay}}}  * (\tau_{\text{initial}} - \tau_{\text{final}})
+$$
 
 Instead of computing the expected loss over all halting steps like in Ponder-AP-GCN, we compute it from the output corresponding to the sampled step:
 
