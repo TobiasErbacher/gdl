@@ -17,7 +17,7 @@ mpl.rcParams.update(MATPLOTLIBPARAMS)
 
 # Choose the datasets and model for which the distribution of the number of steps is plotted
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
-MODEL = Model.Gumbel_AP_GCN
+MODEL = Model.RL_AP_GCN
 
 # Not necessary to change this
 PROJECT_NAME = f"{MODEL.label}"
@@ -76,12 +76,13 @@ def plot_step_distribution_per_dataset(steps_per_dataset: Dict[str, List[List[in
                          Dataset.CORAML.label,
                          Dataset.PUBMED.label,
                          Dataset.MSACADEMIC.label,
-                         Dataset.APHOTO.label,
-                         Dataset.ACOMPUTER.label]
+                         Dataset.ACOMPUTER.label,
+                         Dataset.APHOTO.label]
 
         step_distribution_per_dataset = {key: step_distribution_per_dataset[key] for key in desired_order}
 
     fig, ax = plt.subplots()
+
     for dataset_name, avg_steps in step_distribution_per_dataset.items():
         sns.kdeplot(avg_steps,
                     fill=True,
@@ -90,6 +91,15 @@ def plot_step_distribution_per_dataset(steps_per_dataset: Dict[str, List[List[in
                     label=dataset_name,
                     color=Dataset.from_label(dataset_name).plot_color
         )
+
+    # We want the same x-axis for all plots
+    ax.set_xlim(0, 10)
+    ax.set_xticks([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+    # We want the same y-axis for all plots
+    y_max = 4.0
+    ax.set_ylim(0, y_max)
+    ax.set_yticks(np.arange(0, y_max, 0.5))
 
     plt.xlabel("Number of Steps")
     plt.ylabel("Density")

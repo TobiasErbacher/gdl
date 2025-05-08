@@ -9,7 +9,7 @@ api = wandb.Api()
 
 # Choose the datasets and model for which the average accuracy is calculated
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
-MODEL = Model.SPINELLI
+MODEL = Model.Gumbel_AP_GCN
 
 # Not necessary to change this
 PROJECT_NAME = f"{MODEL.label}"
@@ -69,5 +69,31 @@ dataset_names = [name.label for name in DATASETS]
 model_name = MODEL.label
 results = calculate_training_times(dataset_names, model_name)
 
+# If we create a plot for all datasets we want a consistent order
+if len(results) == 6:
+    desired_order = [Dataset.CITESEER.label,
+                     Dataset.CORAML.label,
+                     Dataset.PUBMED.label,
+                     Dataset.MSACADEMIC.label,
+                     Dataset.ACOMPUTER.label,
+                     Dataset.APHOTO.label]
+
+    # Create a mapping from label to index for sorting
+    order_index = {label: i for i, label in enumerate(desired_order)}
+    # Sort the results list based on the label order
+    results = sorted(results, key=lambda r: order_index[r.dataset_name])
+
+total_training_time = 0
 for result in results:
     print(f"Dataset: {result.dataset_name}, avg training time per epoch: {result.avg_training_time_epoch:.1f} [ms], sum of run-times: {result.total_training_time:.0f} [s]")
+    total_training_time += result.total_training_time
+
+print(f"Total compute time: {round(total_training_time / 3600, 2)} [h]")
+
+# To avoid typos, we generate the LaTeX string programmatically for the corresponding row in the report table
+latex_string = "&"
+for result in results:
+    latex_string += f"${result.avg_training_time_epoch:.1f}$&"
+
+latex_string = latex_string[0:-1]
+print(latex_string)

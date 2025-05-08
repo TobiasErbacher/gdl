@@ -86,6 +86,20 @@ dataset_names = [name.label for name in DATASETS]
 model_name = MODEL.label
 results = calculate_average_accuracies(dataset_names, model_name)
 
+# If we create a plot for all datasets we want a consistent order
+if len(results) == 6:
+    desired_order = [Dataset.CITESEER.label,
+                     Dataset.CORAML.label,
+                     Dataset.PUBMED.label,
+                     Dataset.MSACADEMIC.label,
+                     Dataset.ACOMPUTER.label,
+                     Dataset.APHOTO.label]
+
+    # Create a mapping from label to index for sorting
+    order_index = {label: i for i, label in enumerate(desired_order)}
+    # Sort the results list based on the label order
+    results = sorted(results, key=lambda r: order_index[r.dataset_name])
+
 for result in results:
     print(
         f"Dataset: {result.dataset_name}, mean: {result.avg_accuracy * 100:.2f} [%], uncertainty: {result.uncertainty * 100:.2f} [%]")

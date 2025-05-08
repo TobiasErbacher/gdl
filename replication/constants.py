@@ -5,8 +5,8 @@ from replication.model_classes.model_Ponder_AP_GCN import get_Ponder_AP_GCN_conf
 from replication.model_classes.model_RL_AP_GCN import get_RL_AP_GCN_configuration
 from replication.model_classes.model_spinelli import get_spinelli_configuration
 
-# Do not move the Dataset enum here (or you get a circular dependency)
 
+# Do not move the Dataset enum here (or you get a circular dependency)
 class Model(Enum):
     SPINELLI = ("Spinelli", get_spinelli_configuration)
     RL_AP_GCN = ("RL-AP-GCN", get_RL_AP_GCN_configuration)

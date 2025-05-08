@@ -5,7 +5,7 @@ class Dataset(Enum):
     CITESEER = ("Citeseer", 1500, "darkgreen")
     CORAML = ("Cora-ML", 1500, "darkorange")
     PUBMED = ("PubMed", 1500, "blue")
-    # According to [18] (otherwise not 20 instances per class in the dev set)
+    # 5000 according to [18] (otherwise not 20 instances per class in the dev set)
     MSACADEMIC = ("MS-Academic", 5000, "pink")
     ACOMPUTER = ("A.Computer", 1500, "lightgreen")
     APHOTO = ("A.Photo", 1500, "gold")

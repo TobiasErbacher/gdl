@@ -16,9 +16,9 @@ import argparse
 
 from replication.constants import Model
 from replication.dataset import Dataset
-from replication.data import get_dataset, set_train_val_test_split
+from replication.data_loading.data import get_dataset, set_train_val_test_split
 from replication.model_classes.interfaces import Integrator, TrainArgs, EvalArgs, ModelArgs
-from replication.seeds import gen_seeds, test_seeds
+from replication.data_loading.seeds import gen_seeds, test_seeds
 
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
@@ -150,7 +150,7 @@ def main():
 
     _, _, _, _, model_args = Model.from_label(model_name).get_config(dataset, dataset_name)
 
-    # If the model is SPINELLI and no propagation penalty is provided just run with the best propagation penalty
+    # If the model is Spinelli and no propagation penalty is provided just run with the best propagation penalty
     if prop_penalties is None and model_name == Model.SPINELLI.label:
         prop_penalties = [model_args.prop_penalty]
 
