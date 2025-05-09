@@ -8,4 +8,6 @@ The datasets that we will be training on are already downloaded in [another fold
 
 Further installation instructions can be found in the [original github repository](https://github.com/benfinkelshtein/CoGNN/tree/main).
 
-The main file of this approach is _main.ipynb_.
+The main file of this approach is _main.ipynb_. The other _.py_ files contain some class definitions that are used in the main Jupyter Notebook.
+
+The directory [CodeSplit](https://github.com/TobiasErbacher/gdl/tree/main/Tobias/CoGNN/CodeSplit) contains the authors' code but reorganized into individual class files. Moreover, the folder [Reimplementation](https://github.com/TobiasErbacher/gdl/tree/main/Tobias/CoGNN/Reimplementation) contains a Jupyter Notebook with the commented code.
