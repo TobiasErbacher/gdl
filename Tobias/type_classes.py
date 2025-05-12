@@ -100,7 +100,7 @@ class ActivationType(Enum):
 
 class LossesAndMetrics(NamedTuple):
     """
-        Class the metric losses and metrics.
+        Class for the losses and scores.
     """
     train_loss: float
     val_loss: float
@@ -113,6 +113,9 @@ class LossesAndMetrics(NamedTuple):
         return tensor([self.train_metric, self.val_metric, self.test_metric])
 
 class Metric:
+    """
+        Class for the metric.
+    """
     def __init__(self, task: str, num_classes: int, **kwargs):
 
         self.metric = Accuracy(task=task, num_classes=num_classes, **kwargs)
@@ -123,7 +126,6 @@ class Metric:
         self.get_worst_losses_n_metrics = LossesAndMetrics(train_loss=inf, val_loss=inf, test_loss=inf, train_metric=-inf, val_metric=-inf, test_metric=-inf)
     
     def apply_metric(self, scores: np.ndarray, target: np.ndarray) -> float:
-        #num_classes = scores.size(1)  # target.max().item() + 1
         if isinstance(scores, np.ndarray):
             scores = from_numpy(scores)
         if isinstance(target, np.ndarray):
@@ -136,28 +138,3 @@ class Metric:
         
     def src_better_than_other(self, src: float, other: float) -> bool:
         return src > other
-
-class Pool(Enum):
-    """
-        an object for the different activation types
-    """
-    NONE = auto()
-    MEAN = auto()
-    SUM = auto()
-
-    @staticmethod
-    def from_string(s: str):
-        try:
-            return Pool[s]
-        except KeyError:
-            raise ValueError()
-
-    def get(self):
-        if self is Pool.MEAN:
-            return global_mean_pool
-        elif self is Pool.SUM:
-            return global_add_pool
-        elif self is Pool.NONE:
-            return BatchIdentity()
-        else:
-            raise ValueError(f'Pool {self.name} not supported')
