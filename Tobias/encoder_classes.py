@@ -1,3 +1,5 @@
+# OFFICIAL LIBRARY IMPORTS ------------------------------------------------------------------------
+
 from enum import Enum, auto
 from torch import cat, rand, isnan, sum, Tensor
 from torch.nn import Module, ModuleList, Linear, Sequential, BatchNorm1d, ReLU, TransformerEncoder, TransformerEncoderLayer, Embedding
@@ -5,6 +7,7 @@ from torch.nn.init import xavier_uniform_
 from ogb.utils.features import get_atom_feature_dims, get_bond_feature_dims
 from torch_geometric.data import Data
 
+# FIXED PARAMETERS --------------------------------------------------------------------------------
 KER_DIM_PE = 28
 NUM_RW_STEPS = 20
 KER_MODEL = 'Linear' # renamed from original code
@@ -21,6 +24,7 @@ LAP_MAX_FREQS = 10
 LAP_RAW_NORM_TYPE = 'none' # renamed from original code
 LAP_PASS_AS_VAR = False # renamed from original code
 
+# CUSTOM CLASSES ----------------------------------------------------------------------------------
 class LapPENodeEncoder(Module):
     """Laplace Positional Embedding node encoder.
 
@@ -304,7 +308,6 @@ class AtomEncoder(Module):
         return x_embedding
 
 class BondEncoder(Module):
-
     def __init__(self, emb_dim):
         super(BondEncoder, self).__init__()
 

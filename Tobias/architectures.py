@@ -2,7 +2,7 @@
 
 from torch.nn import Linear, Parameter, Module
 from torch import Tensor, cat
-from typing import Callable, List, Any
+from typing import Callable, Any
 from torch_geometric.typing import OptTensor, Adj
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.conv.gcn_conv import gcn_norm

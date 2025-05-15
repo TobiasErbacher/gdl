@@ -4,14 +4,13 @@ from torch.nn import Module, ReLU, GELU, CrossEntropyLoss
 import torch.nn.functional as F
 from torchmetrics import Accuracy
 from torch_geometric.data import Data
-from torch_geometric.nn.pool import global_mean_pool, global_add_pool
 import numpy as np
 from math import inf
 from enum import Enum, auto
 from typing import Callable, List, NamedTuple
 
 # CUSTOM IMPORTS ----------------------------------------------------------------------------------
-from architectures import WeightedGCNConv, WeightedGINConv, WeightedGNNConv, GraphLinear, BatchIdentity
+from architectures import WeightedGCNConv, WeightedGINConv, WeightedGNNConv, GraphLinear
 
 # CUSTOM CLASSES ----------------------------------------------------------------------------------
 class ModelType(Enum):

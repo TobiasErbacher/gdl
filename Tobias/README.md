@@ -10,4 +10,4 @@ Further installation instructions can be found in the [original github repositor
 
 The main file of this approach is _main.ipynb_. The other _.py_ files contain some class definitions that are used in the main Jupyter Notebook.
 
-The directory [CodeSplit](https://github.com/TobiasErbacher/gdl/tree/main/Tobias/CoGNN/CodeSplit) contains the authors' code but reorganized into individual class files. Moreover, the folder [Reimplementation](https://github.com/TobiasErbacher/gdl/tree/main/Tobias/CoGNN/Reimplementation) contains a Jupyter Notebook with the commented code.
+The directory [CodeSplit](https://github.com/TobiasErbacher/gdl/tree/main/Tobias/CoGNN/CodeSplit) contains the authors' code but reorganized into individual class files. Moreover, the folder [Reimplementation](https://github.com/TobiasErbacher/gdl/tree/main/Tobias/CoGNN/Reimplementation) contains a Jupyter Notebook with the commented code. Lastly, the folder [SampleResults](https://github.com/TobiasErbacher/gdl/tree/main/Tobias/CoGNN/SampleResults) contains results that are of examplary nature for the integration with the visualization only.
