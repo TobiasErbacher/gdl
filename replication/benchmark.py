@@ -1,10 +1,3 @@
-# Run using python replicate --dataset=<name> --model=<name> --prop-penalties <prop-penalties>
-# <name>=Citeseer|Cora-ML|PubMed|MS-Academic|A.Computer|A.Photo
-# <model>=SPINELLI|RL-AP-GCN|Ponder-AP-GCN|Gumbel-AP-GCN|CO-AP-GCN
-# <prop-penalties>=list of propagation penalties to run. E.g.: 0.1 0.05 0.01 0.005 0.001 0.0005 0.0001
-# See constants.py
-# Note: you must be logged in wandb
-# Trains 5 models for 20 seeds for the provided dataset and stores result in wandb for each propagation penalty
 import numpy as np
 import torch
 import wandb
@@ -96,7 +89,7 @@ def train_model(dataset, epochs, best_model_path, patience, ModelClass, integrat
     print(f"Test Accuracy: {test_acc:.4f}, Avg Test Steps: {test_step.mean():.2f}")
 
     # Log list of steps per node for the test evaluation
-    df = pd.DataFrame(test_step, columns=["step"])
+    df = pd.DataFrame(test_step)
     df_json = df.to_json(orient="split")
 
     wandb.log({

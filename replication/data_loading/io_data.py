@@ -8,8 +8,7 @@ import scipy.sparse as sp
 from os.path import join
 from replication.data_loading.sparsegraph import SparseGraph
 
-data_dir = join(Path(__file__).parent, "data")
-
+data_dir = join(Path(__file__).parent.parent, "data")
 
 def load_from_npz(file_name: str) -> SparseGraph:
     """Load a SparseGraph from a Numpy binary file.

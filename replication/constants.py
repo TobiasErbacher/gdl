@@ -1,5 +1,6 @@
 from enum import Enum
 
+from replication.model_classes.model_Co_AP_GCN import get_Cooperative_AP_GCN_configuration
 from replication.model_classes.model_Gumbel_AP_GCN import get_Gumbel_AP_GCN_configuration
 from replication.model_classes.model_Ponder_AP_GCN import get_Ponder_AP_GCN_configuration
 from replication.model_classes.model_RL_AP_GCN import get_RL_AP_GCN_configuration
@@ -12,6 +13,7 @@ class Model(Enum):
     RL_AP_GCN = ("RL-AP-GCN", get_RL_AP_GCN_configuration)
     PONDER_AP_GCN = ("Ponder-AP-GCN", get_Ponder_AP_GCN_configuration)
     Gumbel_AP_GCN = ("Gumbel-AP-GCN", get_Gumbel_AP_GCN_configuration)
+    Cooperative_AP_GCN = ("Cooperative-AP-GCN", get_Cooperative_AP_GCN_configuration)
 
     def __init__(self, label: str, get_config):
         self.label = label

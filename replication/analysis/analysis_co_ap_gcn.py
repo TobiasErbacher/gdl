@@ -1,5 +1,7 @@
 from io import StringIO
 
+import math
+import numpy as np
 import pandas as pd
 import wandb
 from matplotlib import pyplot as plt
@@ -9,17 +11,15 @@ from matplotlib.patches import Patch
 
 from replication.constants import Model, ANALYSIS_FIGURE_OUTPUT_PATH, MATPLOTLIBPARAMS
 from replication.dataset import Dataset
-from replication.model_classes.model_spinelli import get_spinelli_configuration
 
 api = wandb.Api()
 mpl.rcParams.update(MATPLOTLIBPARAMS)
 
 # Choose the datasets and model for which the boxplots are created
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
-MODEL = Model.Gumbel_AP_GCN
 
 # Not necessary to change this
-PROJECT_NAME = f"{MODEL.label}"
+PROJECT_NAME = f"{Model.Cooperative_AP_GCN.label}"
 
 
 def get_name_in_tags(tags, dataset_names):
@@ -29,8 +29,12 @@ def get_name_in_tags(tags, dataset_names):
     return None
 
 
-def download_steps(dataset_names: [Dataset], model_name: str):
-    steps = {}
+def download_state_distributions(dataset_names: [Dataset]):
+    """
+    Returns a dictionary {dataset_name: {0, [[state1,state2,state3,state4], [state1,state2,state3,state4]], 1:, [...], ...}, ...}
+    where 0 and 1 are step indices and each list contains a list of size 4 (state distributions) for each run
+    """
+    state_distribution_per_dataset = {}
 
     for run in api.runs(PROJECT_NAME):
         # Only consider runs with the given dataset, model, and the best propagation penalty
@@ -39,26 +43,23 @@ def download_steps(dataset_names: [Dataset], model_name: str):
         if dataset_name is None:  # Only consider runs with a dataset from the list
             continue
 
-        _, _, _, _, model_args = get_spinelli_configuration(None, dataset_name)
-        best_prop_penalty = str(model_args.prop_penalty)
-
-        # Only consider runs with the given model
-        if model_name in run.tags:
-            # Analyze only runs with the best propagation penalty
-            if model_name == Model.SPINELLI.label and best_prop_penalty not in run.tags:
-                continue
+        if Model.Cooperative_AP_GCN.label in run.tags:
             if "test_steps" in run.summary:
                 df_string = run.summary.get("test_steps")
                 df = pd.read_json(StringIO(df_string), orient="split")
-                step_list = df["step"].tolist()
-                if dataset_name not in steps:
-                    steps[dataset_name] = [step_list]
+                state_distribution_per_step = df.to_numpy().tolist()
+
+                if dataset_name not in state_distribution_per_dataset:
+                    state_distribution_per_dataset[dataset_name] = {}
+                    for index in range(len(state_distribution_per_step)):
+                        state_distribution_per_dataset[dataset_name][index] = [state_distribution_per_step[index]]
                 else:
-                    steps[dataset_name].append(step_list)
+                    for index in range(len(state_distribution_per_step)):
+                        state_distribution_per_dataset[dataset_name][index].append(state_distribution_per_step[index])
             else:
                 raise RuntimeError(f"Run {run} is missing test_steps summary statistic")
 
-    return steps
+    return state_distribution_per_dataset
 
 
 def plot_boxplots(state_distributions_per_dataset):
@@ -76,21 +77,20 @@ def plot_boxplots(state_distributions_per_dataset):
             key: state_distributions_per_dataset[key] for key in desired_order
         }
 
-    fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(12, 10), sharey=True)
+    fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(12, 10))
     axes = axes.flatten()
 
     # Define colors for the 4 states
     state_colors = [
         mcolors.CSS4_COLORS["royalblue"],
         mcolors.CSS4_COLORS["seagreen"],
-        mcolors.CSS4_COLORS["plum"],
-        mcolors.CSS4_COLORS["darkorange"]
+        mcolors.CSS4_COLORS["darkorange"],
+        mcolors.CSS4_COLORS["crimson"]
     ]
 
     for dataset_index, (dataset_name, steps_dict) in enumerate(state_distributions_per_dataset.items()):
         axis = axes[dataset_index]
         axis.set_title(dataset_name)
-        axis.tick_params(labelleft=True)  # Show y tick labels despite shared y-axis
 
         all_box_data = []  # List of all state values grouped by step
         xtick_positions = []  # X positions for labeling steps
@@ -103,37 +103,23 @@ def plot_boxplots(state_distributions_per_dataset):
             state_color_indices.extend([0, 1, 2, 3])  # Track which state each box corresponds to
 
             # Center x position of the group of 4 boxes
-            center_position = len(all_box_data) - 1.5
+            center_position = len(all_box_data) - 2
             xtick_positions.append(center_position)
             xtick_labels.append(str(step_idx))
 
-        # Alternating gray background
-        step_width = 4  # since 4 boxes per step
-        for i in range(0, len(xtick_positions)):
-            start = i * step_width + 0.5
-            end = start + step_width
-            axis.axvspan(start, end, facecolor='lightgrey' if i % 2 == 0 else 'white', alpha=0.3)
-
         # Create the boxplot
-        bp = axis.boxplot(all_box_data, patch_artist=True, boxprops={"linewidth":1}, medianprops=dict(color="red"))
+        bp = axis.boxplot(all_box_data, patch_artist=True, boxprops={"linewidth":1})
 
         # Color each box according to its state index
         for patch, state_idx in zip(bp["boxes"], state_color_indices):
             patch.set_facecolor(state_colors[state_idx])
-            patch.set_alpha(0.7)
-
-        index_to_state = {
-            0: "Standard",
-            1: "Broadcast",
-            2: "Listen",
-            3: "Isolate"
-        }
+            patch.set_alpha(0.6)
 
         legend_elements = [
-            Patch(facecolor=state_colors[i], edgecolor="black", label=f"{index_to_state[i]}", alpha=0.7)
+            Patch(facecolor=state_colors[i], edgecolor="black", label=f"State {i}", alpha=0.6)
             for i in range(4)
         ]
-        fig.legend(handles=legend_elements, loc="upper center", ncol=2)
+        fig.legend(title="State", handles=legend_elements, loc="upper center", ncol=4)
 
         axis.set_xticks(xtick_positions)
         axis.set_xticklabels(xtick_labels)
@@ -145,7 +131,6 @@ def plot_boxplots(state_distributions_per_dataset):
 
 
 dataset_names = [dataset.label for dataset in DATASETS]
-model_name = MODEL.label
 
-steps_per_dataset = download_steps(dataset_names, model_name)
-plot_boxplot(steps_per_dataset, model_name)
+state_distributions_per_dataset = download_state_distributions(dataset_names)
+plot_boxplots(state_distributions_per_dataset)
