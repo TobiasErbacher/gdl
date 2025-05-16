@@ -13,8 +13,13 @@ from replication.data_loading.data import get_dataset, set_train_val_test_split
 from replication.model_classes.interfaces import Integrator, TrainArgs, EvalArgs, ModelArgs
 from replication.data_loading.seeds import gen_seeds, test_seeds
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
+else:
+    device = torch.device("cpu")
 
 def train_model(dataset, epochs, best_model_path, patience, ModelClass, integrator: Integrator, train_args: TrainArgs,
                 eval_args: EvalArgs, model_args: ModelArgs):
