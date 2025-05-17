@@ -41,4 +41,13 @@ for dataset_enum in DATASETS:
     average_degree = degrees.float().mean()
 
     print(f"Average degree: {average_degree:.2f}")
+
+    # Homophily ratio
+    labels = dataset.data.y
+    edge_index = dataset.data.edge_index
+
+    same_label = labels[edge_index[0]] == labels[edge_index[1]]
+
+    homophily_ratio = same_label.float().mean().item()
+    print(f"Homophily ratio: {homophily_ratio:.2f}")
     print("-----------------------------")
