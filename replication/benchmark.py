@@ -181,7 +181,7 @@ def main():
                 if model_name == Model.SPINELLI.label:
                     tags.append(str(prop_penalty))
 
-                run = wandb.init(project=model_name, name=run_name, tags=tags, reinit=True)
+                run = wandb.init(entity="AP-GCN", project=model_name, name=run_name, tags=tags, reinit=True)
 
                 torch_seed = gen_seeds()
                 torch.manual_seed(seed=torch_seed)

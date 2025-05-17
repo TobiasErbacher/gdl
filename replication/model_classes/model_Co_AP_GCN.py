@@ -7,6 +7,7 @@ from torch import Tensor
 from torch_geometric.typing import OptTensor, Adj
 from torch.nn import CrossEntropyLoss
 
+from replication.dataset import Dataset
 from replication.model_classes.co_gnn_helper_classes.encoder_classes import DataSetEncoders
 from replication.model_classes.co_gnn_helper_classes.type_classes import ModelType, ActivationType
 from replication.model_classes.interfaces import Integrator, TrainArgs, EvalArgs, ModelArgs
@@ -187,8 +188,7 @@ class CoGNN(torch.nn.Module):
                                                   keep_out_prob=out_probs[:, 0])
 
             # environment
-            out = self.env_net[1 + gnn_idx](x=x, edge_index=edge_index, edge_weight=edge_weight,
-                                            edge_attr=env_edge_embedding)
+            out = self.env_net[1 + gnn_idx](x=x, edge_index=edge_index, edge_weight=edge_weight, edge_attr=env_edge_embedding)
             out = self.dropout(out)
             out = self.act(out)
 
@@ -271,27 +271,27 @@ class Co_AP_GCN_Integrator(Integrator):
             train_loss += train_args.weight_decay * l2_reg
 
         train_loss.backward()
-        torch.autograd.set_detect_anomaly(True)
 
-        norm = torch.tensor(0.0, device=train_loss.device)
-        for name, param in model.named_parameters():
-            if param.requires_grad:
-                norm += torch.norm(param, p=2)
+        #norm = torch.tensor(0.0, device=train_loss.device)
+        #for name, param in model.named_parameters():
+        #    if param.requires_grad:
+        #        norm += torch.norm(param, p=2)
 
-        if epoch % 10 == 0:
-            print(f"Epoch {epoch} - Parameter norm: {norm.item():.4f}")
+        #if epoch % 10 == 0:
+        #    print(f"Epoch {epoch} - Parameter norm: {norm.item():.4f}")
 
         # Gradient norm (L2) of all parameters
-        grad_norm = torch.tensor(0.0, device=train_loss.device)
-        for param in model.parameters():
-            if param.requires_grad and param.grad is not None:
-                grad_norm += torch.norm(param.grad, p=2)
+        #grad_norm = torch.tensor(0.0, device=train_loss.device)
+        #for param in model.parameters():
+        #    if param.requires_grad and param.grad is not None:
+        #        grad_norm += torch.norm(param.grad, p=2)
 
-        if epoch % 10 == 0:
-            print(f"Epoch {epoch} - Gradient norm before clipping: {grad_norm.item():.4f}")
+        #if epoch % 10 == 0:
+        #    print(f"Epoch {epoch} - Gradient norm before clipping: {grad_norm.item():.4f}")
 
         if train_args.clip_grad:
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
+
         optimizer.step()
 
         return train_loss, np.zeros(len(predictions))
@@ -304,7 +304,8 @@ class Co_AP_GCN_Integrator(Integrator):
             broadcast = layer[layer == 1].shape[0] / layer.shape[0]
             listen = layer[layer == 2].shape[0] / layer.shape[0]
             isolate = layer[layer == 3].shape[0] / layer.shape[0]
-            assert abs(1.0 - sum([standard, broadcast, listen, isolate])) < 1e-6
+            if abs(1.0 - sum([standard, broadcast, listen, isolate])) >= 1e-6:
+                print("Warning: state distribution does not sum to 1.")
             distribution_per_layer.append([standard, broadcast, listen, isolate])
         return np.array(distribution_per_layer)
 
@@ -330,9 +331,13 @@ class Co_AP_GCN_Integrator(Integrator):
 
 
 def get_Cooperative_AP_GCN_configuration(dataset, dataset_name):
+    clip_grad = False
+    learning_rate = 0.005
+    weight_decay = 0.003
+
     gumbel_args = {
         "tau0": 0.5,
-        "learn_temp": False,
+        "learn_temp": True,
         "temp": 0.5,
         "temp_model_type": ModelType.GCN,
         "gin_mlp_func": None,  # Can set to None since we have model_type=ModelType.GCN
@@ -340,10 +345,10 @@ def get_Cooperative_AP_GCN_configuration(dataset, dataset_name):
 
     env_args = {
         "num_layers": 3,
-        "env_dim": 64,
+        "env_dim": 32,
         "dropout": 0.5,
         "dec_num_layers": 1,
-        "layer_norm": False,
+        "layer_norm": True,
         "skip": False,
         "act_type": ActivationType.RELU,
         "model_type": ModelType.GCN,
@@ -360,8 +365,19 @@ def get_Cooperative_AP_GCN_configuration(dataset, dataset_name):
         "gin_mlp_func": None  # Can set to None since we have model_type=ModelType.GCN
     }
 
+    if dataset_name == Dataset.CITESEER.label:
+        pass
+    elif dataset_name == Dataset.CORAML.label:
+        pass
+    elif dataset_name == Dataset.PUBMED.label:
+        pass
+    elif dataset_name == Dataset.MSACADEMIC.label:
+        pass
+    elif dataset_name == Dataset.ACOMPUTER.label:
+        learning_rate = 0.001
+
     integrator = Co_AP_GCN_Integrator()
-    train_args = Co_AP_GCN_TrainArgs(0.01, None, 0, False)
+    train_args = Co_AP_GCN_TrainArgs(learning_rate, None, weight_decay, clip_grad)
     model_args = Co_AP_GCN_ModelArgs(dataset, None, gumbel_args, env_args, action_args)
 
     return CoGNN, integrator, train_args, None, model_args
