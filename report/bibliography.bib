@@ -15,8 +15,6 @@
   volume={32},
   number={10},
   pages={4755-4760},
-  keywords={Laplace equations;Convolutional codes;Protocols;Neural networks;Learning systems;Adaptive systems;Adaptation models;Convolutional network;graph data;graph neural network (GNN);node classification},
-  doi={10.1109/TNNLS.2020.3025110}
 }
 
 
@@ -31,15 +29,11 @@
   series = 	 {Proceedings of Machine Learning Research},
   month = 	 {10--15 Jul},
   publisher =    {PMLR},
-  pdf = 	 {http://proceedings.mlr.press/v80/xu18c/xu18c.pdf},
-  url = 	 {https://proceedings.mlr.press/v80/xu18c.html},
   abstract = 	 {Recent deep learning approaches for representation learning on graphs follow a neighborhood aggregation procedure. We analyze some important properties of these models, and propose a strategy to overcome those. In particular, the range of "neighboring" nodes that a node’s representation draws from strongly depends on the graph structure, analogous to the spread of a random walk. To adapt to local neighborhood properties and tasks, we explore an architecture – jumping knowledge (JK) networks – that flexibly leverages, for each node, different neighborhood ranges to enable better structure-aware representation. In a number of experiments on social, bioinformatics and citation networks, we demonstrate that our model achieves state-of-the-art performance. Furthermore, combining the JK framework with models like Graph Convolutional Networks, GraphSAGE and Graph Attention Networks consistently improves those models’ performance.}
 }
 
 @article{liu2019,
-	abstractnote = {&lt;p&gt;We present, GeniePath, a scalable approach for learning adaptive receptive fields of neural networks defined on permutation invariant graph data. In GeniePath, we propose an adaptive path layer consists of two complementary functions designed for breadth and depth exploration respectively, where the former learns the importance of different sized neighborhoods, while the latter extracts and filters signals aggregated from neighbors of different hops away. Our method works in both transductive and inductive settings, and extensive experiments compared with competitive methods show that our approaches yield state-of-the-art results on large graphs.&lt;/p&gt;},
 	author = {Liu, Ziqi and Chen, Chaochao and Li, Longfei and Zhou, Jun and Li, Xiaolong and Song, Le and Qi, Yuan},
-	doi = {10.1609/aaai.v33i01.33014424},
 	journal = {Proceedings of the AAAI Conference on Artificial Intelligence},
 	month = {Jul.},
 	number = {01},
@@ -48,8 +42,7 @@
 	url = {https://ojs.aaai.org/index.php/AAAI/article/view/4354},
 	volume = {33},
 	year = {2019},
-	bdsk-url-1 = {https://ojs.aaai.org/index.php/AAAI/article/view/4354},
-	bdsk-url-2 = {https://doi.org/10.1609/aaai.v33i01.33014424}}
+}
 
 
 @inproceedings{ma2021,
@@ -60,12 +53,10 @@
   publisher = {Association for Computing Machinery},
   address = {New York, NY, USA},
   url = {https://doi.org/10.1145/3442381.3449896},
-  doi = {10.1145/3442381.3449896},
   abstract = {The abundant information in graphs helps us to learn more expressive node representations. Different nodes in the neighborhood have different importance to the central node. Thus, average weight aggregation in most Graph Neural Networks would fail to model such difference. GAT-based models introduce the attention mechanism to solve this problem, but they ignore the rich structural information and may suffer from the problem of over-smoothing. In this paper, we propose Graph Neural Networks with STructural Adaptive Receptive fields (STAR-GNN), which adaptively construct a receptive field for each node with structural information and further achieve better aggregation of information. Firstly, we model local structural distribution based on anonymous random walks, followed by using the structural information to construct receptive fields guided with mutual information. Then, as the generated receptive fields are irregular, we design a sub-graph aggregator to boost node representations and theoretically prove that it has the ability to capture the complex structures in receptive fields. Experimental results demonstrate the power of STAR-GNN in learning structural receptive fields adaptively and encoding more informative structural characteristics in real-world networks.},
   booktitle = {Proceedings of the Web Conference 2021},
   pages = {2438-2447},
   numpages = {10},
-  keywords = {graph neural networks, mutual information, receptive fields},
   location = {Ljubljana, Slovenia},
   series = {WWW '21}
 }
@@ -89,7 +80,6 @@
   publisher = {Association for Computing Machinery},
   address = {New York, NY, USA},
   url = {https://doi.org/10.1145/3394486.3403088},
-  doi = {10.1145/3394486.3403088},
   abstract = {Graph data are pervasive in many real-world applications. Recently, increasing attention has been paid on graph neural networks (GNNs), which aim to model the local graph structures and capture the hierarchical patterns by aggregating the information from neighbors with stackable network modules. Motivated by the observation that different nodes often require different iterations of aggregation to fully capture the structural information, in this paper, we propose to explicitly sample diverse iterations of aggregation for different nodes to boost the performance of GNNs. It is a challenging task to develop an effective aggregation strategy for each node, given complex graphs and sparse features. Moreover, it is not straightforward to derive an efficient algorithm since we need to feed the sampled nodes into different number of network layers. To address the above challenges, we propose Policy-GNN, a meta-policy framework that models the sampling procedure and message passing of GNNs into a combined learning process. Specifically, Policy-GNN uses a meta-policy to adaptively determine the number of aggregations for each node. The meta-policy is trained with deep reinforcement learning~(RL) by exploiting the feedback from the model. We further introduce parameter sharing and a buffer mechanism to boost the training efficiency. Experimental results on three real-world benchmark datasets suggest that Policy-GNN significantly outperforms the state-of-the-art alternatives, showing the promise in aggregation optimization for GNNs.},
   booktitle = {Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery \& Data Mining},
   pages = {461–471},
@@ -120,7 +110,6 @@
   publisher = {Association for Computing Machinery},
   address = {New York, NY, USA},
   url = {https://doi.org/10.1145/3447548.3467451},
-  doi = {10.1145/3447548.3467451},
   abstract = {This paper studies the problem of learning message propagation strategies for graph neural networks (GNNs). One of the challenges for graph neural networks is that of defining the propagation strategy. For instance, the choices of propagation steps are often specialized to a single graph and are not personalized to different nodes. To compensate for this, in this paper, we present learning to propagate, a general learning framework that not only learns the GNN parameters for prediction but more importantly, can explicitly learn the interpretable and personalized propagate strategies for different nodes and various types of graphs. We introduce the optimal propagation steps as latent variables to help find the maximum-likelihood estimation of the GNN parameters in a variational Expectation- Maximization (VEM) framework. Extensive experiments on various types of graph benchmarks demonstrate that our proposed frame- work can significantly achieve better performance compared with the state-of-the-art methods, and can effectively learn personalized and interpretable propagate strategies of messages in GNNs.},
   booktitle = {Proceedings of the 27th ACM SIGKDD Conference on Knowledge Discovery \& Data Mining},
   pages = {1894–1903},
@@ -150,7 +139,6 @@
 @article{sen2008,
 	abstract = {Many real-world applications produce networked data such as the worldwide web (hypertext documents connected through hyperlinks), social networks (such as people connected by friendship links), communication networks (computers connected through communication links), and biological networks (such as protein interaction networks). A recent focus in machine-learning research has been to extend traditional machine-learning classification techniques to classify nodes in such networks. In this article, we provide a brief introduction to this area of research and how it has progressed during the past decade. We introduce four of the most widely used inference algorithms for classifying networked data and empirically compare them on both synthetic and real-world data.},
 	author = {Sen, Prithviraj and Namata, Galileo and Bilgic, Mustafa and Getoor, Lise and Gallagher, Brian and Eliassi-Rad, Tina},
-	doi = {https://doi.org/10.1609/aimag.v29i3.2157},
 	eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1609/aimag.v29i3.2157},
 	journal = {AI Magazine},
 	number = {3},
@@ -159,8 +147,6 @@
 	url = {https://onlinelibrary.wiley.com/doi/abs/10.1609/aimag.v29i3.2157},
 	volume = {29},
 	year = {2008},
-	bdsk-url-1 = {https://onlinelibrary.wiley.com/doi/abs/10.1609/aimag.v29i3.2157},
-	bdsk-url-2 = {https://doi.org/10.1609/aimag.v29i3.2157}
 }
 
 
@@ -170,7 +156,6 @@
 	date = {2000/07/01},
 	date-added = {2025-04-06 19:27:41 +0200},
 	date-modified = {2025-04-06 19:27:41 +0200},
-	doi = {10.1023/A:1009953814988},
 	id = {McCallum2000},
 	isbn = {1573-7659},
 	journal = {Information Retrieval},
@@ -198,7 +183,6 @@
   publisher = {Association for Computing Machinery},
   address = {New York, NY, USA},
   url = {https://doi.org/10.1145/2766462.2767755},
-  doi = {10.1145/2766462.2767755},
   abstract = {Humans inevitably develop a sense of the relationships between objects, some of which are based on their appearance. Some pairs of objects might be seen as being alternatives to each other (such as two pairs of jeans), while others may be seen as being complementary (such as a pair of jeans and a matching shirt). This information guides many of the choices that people make, from buying clothes to their interactions with each other. We seek here to model this human sense of the relationships between objects based on their appearance. Our approach is not based on fine-grained modeling of user annotations but rather on capturing the largest dataset possible and developing a scalable method for uncovering human notions of the visual relationships within. We cast this as a network inference problem defined on graphs of related images, and provide a large-scale dataset for the training and evaluation of the same. The system we develop is capable of recommending which clothes and accessories will go well together (and which will not), amongst a host of other applications.},
   booktitle = {Proceedings of the 38th International ACM SIGIR Conference on Research and Development in Information Retrieval},
   pages = {43-52},
@@ -234,7 +218,6 @@
   number={},
   pages={4167-4171},
   keywords={Neural networks;Signal processing algorithms;Benchmark testing;Computational efficiency;Task analysis;Speech processing;Image classification;Deep network;energy efficiency;multi-branch architectures;inference time},
-  doi={10.1109/ICASSP40776.2020.9054209}
 }
 
 

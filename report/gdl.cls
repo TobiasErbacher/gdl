@@ -18,7 +18,7 @@
 \flushbottom
 \frenchspacing
 
-\usepackage[text={174mm,258mm},%
+\usepackage[text={190mm,258mm},%
 papersize={210mm,297mm},%
 columnsep=12pt,%
 headsep=21pt,%
