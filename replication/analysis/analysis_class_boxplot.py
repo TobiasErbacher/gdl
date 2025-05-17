@@ -19,6 +19,7 @@ mpl.rcParams.update(MATPLOTLIBPARAMS)
 
 # Choose the datasets and model for which the boxplots per class are created
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
+# Does not work with Model.Cooperative_AP_GCN
 MODEL = Model.SPINELLI
 
 # Not necessary to change this

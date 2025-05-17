@@ -17,6 +17,7 @@ mpl.rcParams.update(MATPLOTLIBPARAMS)
 
 # Choose the datasets and model for which the distribution of the number of steps is plotted
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
+# Does not work with Model.Cooperative_AP_GCN
 MODEL = Model.RL_AP_GCN
 
 # Not necessary to change this

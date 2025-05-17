@@ -365,17 +365,6 @@ def get_Cooperative_AP_GCN_configuration(dataset, dataset_name):
         "gin_mlp_func": None  # Can set to None since we have model_type=ModelType.GCN
     }
 
-    if dataset_name == Dataset.CITESEER.label:
-        pass
-    elif dataset_name == Dataset.CORAML.label:
-        pass
-    elif dataset_name == Dataset.PUBMED.label:
-        pass
-    elif dataset_name == Dataset.MSACADEMIC.label:
-        pass
-    elif dataset_name == Dataset.ACOMPUTER.label:
-        learning_rate = 0.001
-
     integrator = Co_AP_GCN_Integrator()
     train_args = Co_AP_GCN_TrainArgs(learning_rate, None, weight_decay, clip_grad)
     model_args = Co_AP_GCN_ModelArgs(dataset, None, gumbel_args, env_args, action_args)

@@ -122,26 +122,33 @@ def plot_boxplots(state_distributions_per_dataset):
             patch.set_facecolor(state_colors[state_idx])
             patch.set_alpha(0.7)
 
-        index_to_state = {
+        axis.set_xticks(xtick_positions)
+        axis.set_xticklabels([int(tick_label) + 1 for tick_label in xtick_labels])
+        axis.set_xlabel("Step")
+        axis.set_ylabel("Proportion of Nodes")
+
+    index_to_state = {
             0: "Standard",
             1: "Broadcast",
             2: "Listen",
             3: "Isolate"
-        }
+    }
+    legend_elements = [
+        Patch(facecolor=state_colors[i], edgecolor="black", label=f"{index_to_state[i]}", alpha=0.7)
+        for i in range(4)
+    ]
 
-        legend_elements = [
-            Patch(facecolor=state_colors[i], edgecolor="black", label=f"{index_to_state[i]}", alpha=0.7)
-            for i in range(4)
-        ]
-        fig.legend(handles=legend_elements, loc="upper center", ncol=2)
+    # 1) Reserve the top x% of the figure for legend
+    plt.tight_layout(rect=[0, 0, 1, 0.97])
 
-        axis.set_xticks(xtick_positions)
-        axis.set_xticklabels(xtick_labels)
-        axis.set_xlabel("Step")
-        axis.set_ylabel("Proportion of Nodes")
-
-    plt.tight_layout()
-    plt.savefig(ANALYSIS_FIGURE_OUTPUT_PATH + f"state_distribution_per_step.pdf")
+    # 2) Place legend in that space, centered
+    fig.legend(
+        handles=legend_elements,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.93),
+        ncol=2
+    )
+    plt.savefig(ANALYSIS_FIGURE_OUTPUT_PATH + f"{PROJECT_NAME}_state_distribution_per_step.pdf")
 
 
 dataset_names = [dataset.label for dataset in DATASETS]

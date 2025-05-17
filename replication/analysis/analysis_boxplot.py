@@ -16,6 +16,7 @@ mpl.rcParams.update(MATPLOTLIBPARAMS)
 
 # Choose the datasets and model for which the boxplots are created
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
+# Does not work with Model.Cooperative_AP_GCN
 MODEL = Model.Gumbel_AP_GCN
 
 # Not necessary to change this

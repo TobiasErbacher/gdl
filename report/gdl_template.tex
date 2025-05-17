@@ -44,11 +44,10 @@ The length of the report should be between 4 and 8 pages (without considering re
 
 This work is a replication study of the paper "Adaptive Propagation Graph Convolutional Network" by Indro Spinelli, Simone Scardapane, and Aurelio Uncini \cite{spinelli2021}. In Graph Convolutional Networks (GCNs), each node updates its representation by aggregating and transforming features from its neighbors. This process is repeated over several message passing steps, allowing nodes to incorporate information from increasingly distant parts of the graph. The core contribution of Spinelli et al. is the introduction of the Adaptive Propagation Graph Convolutional Network (AP-GCN) that allows each node in the graph to undergo an individual number of message passing steps. The number of message passing steps per node is learned during training.
 
-In addition to the replication work, we implemented four different model architectures for allowing an individual number of message passing steps per node. The RL-AP-GCN, Ponder-AP-GCN, and Gumbel-AP-GCN model architectures closely follow the constraints and capabilities of the AP-GCN. That is, they do at least one step of message passing and once a node is halted it remains inactive thereafter. Ponder-AP-GCN and Gumbel-AP-GCN are inspired by Banino et al. \cite{banino2021}. In contrast, the CoGCN model architecture adopted from Finkelshtein et al. \cite{finkelshtein2024} does not adhere to those constraints. This variant was selected to investigate whether - and to what extent - performance improves when these constraints are lifted. We evaluated these model architectures in the same setting as AP-GCN.
+In addition to the replication work, we implemented three different model architectures for allowing an individual number of message passing steps per node. The RL-AP-GCN, Ponder-AP-GCN, and Gumbel-AP-GCN model architectures closely follow the constraints and capabilities of the AP-GCN. That is, they do at least one step of message passing and once a node is halted it remains inactive thereafter. Ponder-AP-GCN and Gumbel-AP-GCN are inspired by Banino et al. \cite{banino2021}. In addition to these three adaptive propagation model architectures we adopt the CoGCN architecture from Finkelshtein et al. \cite{finkelshtein2024} to assess whether relaxing the constraints mentioned above improves model performance. We evaluated these four additional model architectures in the same setting as AP-GCN.
 
-We could replicate the findings of Spinelli et al. regarding the accuracy of AP-GCN on selected node-classification datasets. Although our accuracies are marginally lower than those originally reported, the differences are minimal but all outside the 95\% confidence interval. Furthermore, while none of our model architectures outperformed AP-GCN, all architectures achieved reasonable accuracy - in particular considering that we did not have the resources to tune the hyperparameters for each model architecture. 
-
-[@Jonas TODO: Check for CoGCN]
+We could replicate the findings of Spinelli et al. regarding the accuracy of AP-GCN on all the six datasets. Although our accuracies are marginally lower than those originally reported, the differences are minimal but all outside the 95\% confidence interval. 
+Furthermore, while none of our model architectures outperformed AP-GCN, all adaptive propagation architectures achieved reasonable accuracy - in particular considering that we did not have the resources to tune the hyperparameters for each model architecture. Since CoGCN performed consistently worse than the other adaptive propagation methods in most cases, we conclude that relaxing the constraints did not lead to a better model performance. In addition, we found that CoGCN is more sensible to the choice of hyperparameters for the given datasets.
 
 Our code is available on GitHub\footnote{\url{https://github.com/TobiasErbacher/gdl}}.
 
@@ -274,7 +273,9 @@ For each dataset, we use 20 random seeds to sample a training set from the devel
 \subsection{Computational requirements}
 \textcolor{red}{Provide information on computational requirements for each of your experiments. For example, the number of CPU/GPU hours and memory requirements. You'll need to think about this ahead of time, and write your code in a way that captures this information so you can later add it to this section. }
 
-The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16 GB of memory. We used the \texttt{mps} backend of PyTorch. \autoref{tab:total-compute-time} shows the compute time per model architecture and the total compute time. Note that the reported compute times only cover the main experiments described in section \ref{sec:experimental-setup} not the compute time related to debugging the model architectures and the setup of the benchmarking code.
+The experiments involving the adaptive propagation architectures were carried out on a MacBook Pro equipped with an Apple M2 Pro chip and 16 GB of memory, using the MPS backend in PyTorch. We encountered a peculiar issue with the CoGNN model on this backend: after a certain number of epochs, the loss began to contain NaN (not-a-number) values. Despite trying several potential fixes, the problem persisted. However, when switching to a different backend, either CPU or CUDA, with the same hyperparameters, the issue did not occur. As a result, we opted to run the CoGNN models on a machine with an NVIDIA GPU. Specifically, experiments on the Amazon datasets were conducted on a machine with a Tesla T4 GPU, while those on all other datasets were run on a GeForce RTX 3050 Ti. Although the hardware differences make direct comparisons of training time per epoch challenging, all systems used are consumer-grade and relatively similar in capability.
+
+\autoref{tab:total-compute-time} shows the compute time per model architecture and the total compute time. Note that the reported compute times only cover the main experiments described in section \ref{sec:experimental-setup} not the compute time related to debugging the model architectures and the setup of the benchmarking code.
 
 \begin{table}[h]
     \small\sf
@@ -287,10 +288,10 @@ The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16
         RL-AP-GCN & 20.23 \\
         Ponder-AP-GCN & 8.77 \\
         Gumbel-AP-GCN & 11.49 \\
-        CoGCN &  \\
+        CoGCN & 8.10   \\
         AP-GCN replication & 7.63  \\
         \midrule
-        Total &  \\
+        Total & 56.22 \\
         \bottomrule
     \end{tabular}
     \label{tab:total-compute-time}
@@ -312,7 +313,7 @@ The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16
         \texttt{RL-AP-GCN} &$74.66 \pm 0.30$&$81.63 \pm 1.43$&$77.18 \pm 0.44$&$88.32 \pm 0.45$&$79.97 \pm 0.56$&$88.88 \pm 0.40$   \\
         \texttt{Ponder-AP-GCN} &$74.80 \pm 0.33$&$82.14 \pm 0.28$&$76.37 \pm 0.43$&$91.29 \pm 0.12$&$83.41 \pm 0.27$&$91.28 \pm 0.23$  \\
         \texttt{Gumbel-AP-GCN} &$70.12 \pm 1.43$&$70.86 \pm 2.50$&$76.85 \pm 0.41$&$87.56 \pm 0.41$&$79.13 \pm 0.55$&$89.22 \pm 0.39$  \\
-        \texttt{CoGCN}  \\
+        \texttt{CoGCN} &$68.00 \pm 0.77$&$74.80 \pm 2.14$&$75.89 \pm 1.04$&$88.58 \pm 0.20$&$30.47 \pm 1.16$&$34.42 \pm 3.57$  \\
         \texttt{AP-GCN replication} &$75.87 \pm 0.27$&$83.69 \pm 0.34$&$78.97 \pm 0.41$&$91.65 \pm 0.13$&$83.25 \pm 0.34$&$90.69 \pm 0.32$        \\
         \midrule
         \texttt{AP-GCN} & $76.12 \pm 0.24$ & $85.71 \pm 0.22$ & $79.80 \pm 0.34$ & $92.62 \pm 0.07$ & $85.18 \pm 0.23$ & $92.05 \pm 0.22$\\
@@ -331,7 +332,7 @@ The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16
         \texttt{RL-AP-GCN} &$169.0$&$161.6$&$221.4$&$279.0$&$279.8$&$206.1$  \\
         \texttt{Ponder-AP-GCN} &$54.1$&$51.1$&$67.9$&$136.4$&$173.6$&$87.9$   \\
         \texttt{Gumbel-AP-GCN} &$81.5$&$84.8$&$84.9$&$157.3$&$188.8$&$112.5$   \\
-        \texttt{CoGCN}  \\
+        \texttt{CoGCN} &$52.4$&$52.4$&$213.5$&$131.6$&$290.4$&$236.0$  \\
         \texttt{AP-GCN replication} &$48.1$&$51.5$&$79.1$&$117.5$&$113.5$&$78.6$  \\
         \midrule
         \texttt{AP-GCN} & $32.4$ & $36.2$ & $42.0$ & $100.3$ & $76.7$ & $50.0$ \\
@@ -342,24 +343,16 @@ The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16
 
 \textcolor{red}{Use figures, plots and tables (like \autoref{tab:table}) to present your results in a nice and readable way.}
 
-We report the results of our experiments with the AP-GCN, Ponder-AP-GCN, RL-AP-GCN, and CoGCN architectures. In \autoref{tab:time-per-epoch}, we report the average training time per epoch for each model architecture. TODO: comment it 
 
-\autoref{tab:accuracy} shows the average accuracy, with uncertainties showing the 95\% confidence level calculated by bootstrapping. The uncertainty is defined as the larger absolute difference between the mean and the 2.5th or 97.5th percentile of the bootstrap distribution. This follows the code in the Jupyter notebook provided by Spinelli et al.  TODO: Comment it
+We report the results of our experiments with the AP-GCN, RL-AP-GCN, Ponder-AP-GCN, Gumbel-AP-GCN, and CoGCN architectures. \autoref{tab:accuracy} shows the average accuracy, with uncertainties showing the 95\% confidence level calculated by bootstrapping. The uncertainty is defined as the larger absolute difference between the mean and the 2.5th or 97.5th percentile of the bootstrap distribution. This follows the code in the Jupyter notebook provided by Spinelli et al. The accuracies of the replicated AP-GCN are consistently lower than the ones reported by Spinelli et al. The largest difference 2.02\% occurs on the Cora-ML dataset. Given that we did not use the exact same setup (library versions and seeds for the model initializations) as Spinelli et al. we think these differences are acceptable. 
 
-In \autoref{fig:density-distribution} we report the distribution of the halting steps, i.e., the steps at which each node halts for each model architecture. Since we have data from 100 runs per model architecture, we first average the halting steps for each node over the 100 runs and then plot the distribution obtained using kernel density estimation (KDE) over these averaged halting steps per node. Note that because of the averaging and the KDE there can be probability mass at non-integer values even though in reality all the models can only halt at an integer number of steps. This approach follows the methodology used by Spinelli et al. The step distribution for AP-GCN has a spike for the MS-Academic (ca. 2.6) and A.Computer (ca. 3.9) datasets at around 2 steps. All other models do not show such pronounced spikes. Furthermore,  the density distributions of different datasets under AP-GCN differ significantly from those of other model architectures, where the peaks of the distributions are typically closer together. In Gumbel-AP-GCN the densities for all datasets are almost identical and centered around 3.5 @Jonathan what could be problem. An important result is that the datasets do not enforce a certain step distribution independent of the model architecture. The reason for this could be that the optimal number of message passing iterations per node depends on the behavior of the neighboring nodes. Consequently, we suspect that there might exist many good combinations of halting steps for a graph.
+In \autoref{fig:density-distribution} we report the distribution of the halting steps, i.e., the steps at which each node halts for the adaptive propagation model architectures. Since we have data from 100 runs per model architecture, we first average the halting steps for each node over the 100 runs and then plot the distribution obtained using kernel density estimation (KDE) over these averaged halting steps per node. Note that because of the averaging and the KDE there can be probability mass at non-integer values even though in reality all the models can only halt at an integer number of steps. This approach follows the methodology used by Spinelli et al. The step distribution for AP-GCN has a spike for the MS-Academic (ca. 2.6) and A.Computer (ca. 3.9) datasets at around 2 steps. All other models do not show such pronounced spikes. Furthermore,  the density distributions of different datasets under AP-GCN differ significantly from those of other model architectures, where the peaks of the distributions are typically closer together. In Gumbel-AP-GCN the densities for all datasets are almost identical and centered around 3.5 @Jonathan what could be problem. An important result is that the datasets do not enforce a certain step distribution independent of the model architecture. The reason for this could be that the optimal number of message passing iterations per node depends on the behavior of the neighboring nodes. Consequently, we suspect that there might exist many good combinations of halting steps for a graph.
 
 \autoref{fig:steps-dist-steps-std} shows the distribution of the standard deviations per node over the 100 experiments for each dataset. A low median standard deviation is desirable since it shows that a model often returns similar halting steps for the same node over experiments with different seeds and weight initialization. Furthermore, it is desirable that the median standard deviation is consistent across the different datasets. AP-GCN tends to have a very low standard deviation per node. RL-AP-GCN has a high standard deviation per node for each dataset. Interestingly, the medians of the boxplots are almost identical (around 3.6). Ponder-AP-GCN has low median standard deviation per node in the Cora-ML, MS-Academic, A.Computer, and A.Photo datasets and high median standard deviation per node in the Citeseer and PubMed datasets. Gumbel-AP-GCN has a high standard deviation per node but still lower than RL-AP-GCN. 
 
+The average training time per epoch for each model is shown in \autoref{tab:time-per-epoch}. While the training times we obtained for AP-GCN differ slightly from those reported by Spinelli et al., this is likely due to differences in hardware; nonetheless, the values remain comparable. Across most datasets, Ponder-AP-GCN is nearly as fast as AP-GCN and even outperforms it on the Cora-ML and PubMed datasets. Unsurprisingly, RL-AP-GCN exhibits the longest training times. @Jonathan, could you elaborate on why this is expected and how it relates to reinforcement learning? Additionally, the variation in training time per epoch across datasets is more pronounced for CoGCN than for AP-GCN.
 
-\subsection{AP-GCN}
-
-\subsection{RL-AP-GCN}
-
-\subsection{Ponder-AP-GCN}
-
-\subsection{Gumbel-AP-GCN}
-
-\subsection{CoGCN}
+Instead of reporting the distribution of halting steps, we tracked how the nodes were distributed among the four possible states at each step. \autoref{fig:cooperative-result} displays boxplots representing the variation in the proportion of nodes assigned to each state (standard, broadcast, listen, and isolate) across 100 independent runs, for each dataset and step. In the experiments on Citeseer, Cora-ML, PubMed, and MS-Academic, the majority of nodes remain in the standard state across nearly all 100 runs and at every step. In contrast, for the A.Computer and A.Photo experiments, nodes tend to be almost evenly distributed across the different states at each step.
 
 \begin{figure*}[p]
     \centering
@@ -445,8 +438,8 @@ In \autoref{fig:density-distribution} we report the distribution of the halting 
 
 \begin{figure*}[p]
     \centering 
-        \includegraphics[width=\textwidth]{Gumbel-AP-GCN_std_steps_per_node_boxplot.pdf}
-        \caption{Each figure shows the distribution of the proportion of nodes in a given state per layer of the CoGCN models for a dataset. }
+        \includegraphics[width=\textwidth]{Cooperative-AP-GCN_state_distribution_per_step.pdf}
+        \caption{Each figure shows the distribution of the proportion of nodes in a given state per layer of the CoGCN models for a dataset.}
         \label{fig:cooperative-result} 
 \end{figure*}
 
@@ -456,7 +449,12 @@ In \autoref{fig:density-distribution} we report the distribution of the halting 
 \textcolor{red}{Here you can express your judgments and draw your conclusions based on the  evidences produced on the previous sections.
 Try to summarize the achievements of your project and its limits, suggesting (when appropriate) possible extensions and future works.}
 
-While AP-GCN works well empirically, some of its choices are hard to justify from a theoretical point of view in our opinion. For instance, Spinelli et al. call $h_i^k$ the probability that a node should halt after $k$ iterations. However, this is actually not what happens, because a node halts when the propagation budget is used up or the maximum number of propagation steps is reached. For instance, assume we have $\mathbf{h}_i = [0.3, 0.4, 0.25]$ and propagation budget $0.9$. AP-GCN will not make node $i$ halt with probability $0.3$ after the first step. In fact, it will never halt after the first step. It will only halt after the third step when the propagation budget is used up. Similarly, the way the embeddings are aggregated over the steps in \autoref{eq:aggregate} has no real theoretical justification.
+Although AP-GCN performs well in practice, several of its design choices lack clear theoretical justification in our opinion. For example, Spinelli et al. refer to $h_i^k$ as the probability that a node should halt after $k$ iterations. However, this is not what actually happens in the model: a node halts only when its propagation budget is used up or the maximum number of steps is reached. For instance, assume we have $\mathbf{h}_i = [0.3, 0.4, 0.25]$ and a propagation budget of $0.9$. AP-GCN will not halt node $i$ with probability $0.3$ after the first step. In fact, it will never halt after the first step. It will only halt after the third step, once the budget is fully consumed. Similarly, the way embeddings are aggregated over steps in \autoref{eq:aggregate} lacks a clear theoretical foundation.
+
+
+We particularly appreciate how seamlessly the PonderNet framework can be adopted to adaptive propagation within graph convolutional networks. Unlike AP-GCN, Ponder-AP-GCN rests on a solid theoretical basis. Although its empirical performance trails AP-GCN slightly, more thorough hyperparameter optimization could possibly allow Ponder-AP-GCN to surpass AP-GCN.
+
+For CoGCN, future work could explore modifying the architecture to share the environment network across steps, thereby reducing the overall parameter count and harnessing potential synergy effects.
 
 
 \clearpage
@@ -487,6 +485,6 @@ We used the Adam optimizer with a learning rate of 0.01. The model incorporates 
 We employed the Adam optimizer with a learning rate of 0.01. The model uses a dropout rate of 0.5, an edge dropout rate of 0.3, and 64 hidden units. Edge dropout was applied exclusively in the adaptive message propagation component. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the \texttt{A. Photo} and \texttt{A. Computer} datasets, where no regularization was used. We set $\beta$ to 0, indicating that the model learns without a geometric prior, rendering $\lambda_p$ irrelevant. During training we use a scheduler for $\tau$ with $\tau_{\text{initial}} = 10.0$, $\tau_{\text{warmup}} = 20.0$, $\tau_{\text{decay}} = 50.0$, and $\tau_{\text{final}} = 1.0$. During evaluation, $\tau$ was fixed at 0.01.
 
 \subsection{CoGNN}
-@Tobias
+@Tobias (see bottom of model file in replication folder)
 
 \end{document}
