@@ -44,11 +44,11 @@ The length of the report should be between 4 and 8 pages (without considering re
 
 This work is a replication study of the paper "Adaptive Propagation Graph Convolutional Network" by Indro Spinelli, Simone Scardapane, and Aurelio Uncini \cite{spinelli2021}. In Graph Convolutional Networks (GCNs), each node updates its representation by aggregating and transforming features from its neighbors. This process is repeated over several message passing steps, allowing nodes to incorporate information from increasingly distant parts of the graph. The core contribution of Spinelli et al. is the introduction of the Adaptive Propagation Graph Convolutional Network (AP-GCN) that allows each node in the graph to undergo an individual number of message passing steps. The number of message passing steps per node is learned during training.
 
-In addition to the replication work, we implemented four different model architectures for allowing an individual number of message passing steps per node. The RL-AP-GCN, Ponder-AP-GCN, and Gumbel-AP-GCN model architectures closely follow the constraints and capabilities of the AP-GCN. That is, they do at least one step of message passing and once a node is halted it remains inactive thereafter. Ponder-AP-GCN and Gumbel-AP-GCN are inspired by Banino et al. \cite{banino2021}. In contrast, the Co-AP-GCN model architecture adopted from Finkelshtein et al. \cite{finkelshtein2024} does not adhere to those constraints. This variant was selected to investigate whether - and to what extent - performance improves when these constraints are lifted. We evaluated these model architectures in the same setting as AP-GCN.
+In addition to the replication work, we implemented four different model architectures for allowing an individual number of message passing steps per node. The RL-AP-GCN, Ponder-AP-GCN, and Gumbel-AP-GCN model architectures closely follow the constraints and capabilities of the AP-GCN. That is, they do at least one step of message passing and once a node is halted it remains inactive thereafter. Ponder-AP-GCN and Gumbel-AP-GCN are inspired by Banino et al. \cite{banino2021}. In contrast, the CoGCN model architecture adopted from Finkelshtein et al. \cite{finkelshtein2024} does not adhere to those constraints. This variant was selected to investigate whether - and to what extent - performance improves when these constraints are lifted. We evaluated these model architectures in the same setting as AP-GCN.
 
 We could replicate the findings of Spinelli et al. regarding the accuracy of AP-GCN on selected node-classification datasets. Although our accuracies are marginally lower than those originally reported, the differences are minimal but all outside the 95\% confidence interval. Furthermore, while none of our model architectures outperformed AP-GCN, all architectures achieved reasonable accuracy - in particular considering that we did not have the resources to tune the hyperparameters for each model architecture. 
 
-[@Jonas TODO: Check for Co-AP-GCN]
+[@Jonas TODO: Check for CoGCN]
 
 Our code is available on GitHub\footnote{\url{https://github.com/TobiasErbacher/gdl}}.
 
@@ -218,7 +218,7 @@ $$
 
 The inference is implemented similar to the training. A halting step is sampled using the GumbelSoftmax function and the output corresponding to that halting steps is returned. As in the Ponder-AP-GCN, the inference could be implemented more efficiently using sequential Bernoulli sampling.
 
-\subsection{Co-AP-GCN}
+\subsection{CoGCN}
 @Tobias TODO
 
 \section{Implementation}
@@ -230,29 +230,29 @@ Briefly describe what you did and which resources did you use. E.g. Did you use 
 
 We independently implemented AP-GCN and compared our implementation with the reference code provided by Spinelli et al., available on their GitHub repository\footnote{\url{https://github.com/spindro/AP-GCN}}. We found that in cases where nodes reach the maximum propagation limit $T$ and are eligible to propagate further, the implementation by Spinelli et al. incorrectly reports one additional step, resulting in an off-by-one error. Importantly, the implementation does not actually perform an extra propagation step—it only misreports the number of steps taken.
 
-For the loading of the \texttt{Citeseer}, \texttt{Cora-ML}, \texttt{PubMed}, \texttt{MS-Academic}, \texttt{A. Computer}, and \texttt{A. Photo} datasets we used the code provided by Spinelli et al.
+For the loading of the Citeseer, Cora-ML, PubMed, MS-Academic, A. Computer, and A. Photo datasets we used the code provided by Spinelli et al.
 
 We asked Prof. Spinelli, among other questions, why they placed the feature mapping layer that projects to the number of classes before the message passing layer. However, we did not receive a response to our email.
 
 \subsection{Datasets}
 \textcolor{red}{Describe the datasets you used and how you obtained them. }
 
-We downloaded the \texttt{Citeseer} \cite{sen2008}, \texttt{Cora-ML} \cite{mccallum2000}, \texttt{PubMed} \cite{namata2012}, \texttt{MS-Academic} \cite{shchur2018}, \texttt{A. Computer}, and \texttt{A. Photo} datasets from the GitHub repository of Spinelli et al. along with the code to load and process them. The \texttt{A. Computer} and \texttt{A. Photo} datasets are portions of the Amazon co-purchase graph originally presented in \cite{mcauley2015}. In the \texttt{Microsoft Academic} dataset, the edges represent co-authorship while in the \texttt{Citeseer}, \texttt{Cora-ML}, and \texttt{PubMed} datasets, the edges represent citations. All these datasets consists of a single graph and are node classification problems. Only the largest connected component in each dataset is used. We calculated the statistics for each dataset, as shown in \autoref{tab:dataset_statistics}. Except for a few values in the average degrees, which may be due to rounding, our results are consistent with those reported by Spinelli et al.
+We downloaded the Citeseer \cite{sen2008}, Cora-ML \cite{mccallum2000}, PubMed \cite{namata2012}, MS-Academic \cite{shchur2018}, A. Computer, and A. Photo datasets from the GitHub repository of Spinelli et al. along with the code to load and process them. The A. Computer and A. Photo datasets are portions of the Amazon co-purchase graph originally presented in \cite{mcauley2015}. In the Microsoft Academic dataset, the edges represent co-authorship while in the Citeseer, Cora-ML, and PubMed datasets, the edges represent citations. All these datasets consists of a single graph and are node classification problems. Only the largest connected component in each dataset is used. We calculated the statistics for each dataset, as shown in \autoref{tab:dataset_statistics}. Except for a few values in the average degrees, which may be due to rounding, our results are consistent with those reported by Spinelli et al. Note that the homophily ratio was not reported by Spinelli et al. All the graphs are quite strongly homophilic.
 
 \begin{table}[h]
-    \small\sf
-    \setlength{\tabcolsep}{2pt}
+    \footnotesize\sf
+    \setlength{\tabcolsep}{1pt}
     \caption{Dataset Statistics}
     \begin{tabular}{l c c c c c c}
         \toprule
-        Dataset & Classes & Features & Nodes & Edges & Avg. Degree \\
+        Dataset & Classes & Features & Nodes & Edges & Avg. Degr. & Homo. Ratio \\
         \midrule
-        Citeseer & 6 & 3703 & 2110 & 3668 & 6.95 \\
-        Cora-ML & 7 & 2879 & 2810 & 7981 & 11.36 \\
-        PubMed & 3 & 500 & 19717 &44324 &8.99 \\
-        MS-Academic & 15&6805 & 18333 & 81894 & 17.87 \\
-        A.Computer & 10 & 767 & 13381 & 245778 & 73.47 \\
-        A.Photo  & 8 & 745 & 7487 & 119043 & 63.60 \\
+        Citeseer & 6 & 3703 & 2110 & 3668 & 6.95 & 0.74 \\
+        Cora-ML & 7 & 2879 & 2810 & 7981 & 11.36 & 0.78 \\
+        PubMed & 3 & 500 & 19717 &44324 &8.99 & 0.80 \\
+        MS-Academic & 15&6805 & 18333 & 81894 & 17.87 & 0.81 \\
+        A.Computer & 10 & 767 & 13381 & 245778 & 73.47 & 0.78 \\
+        A.Photo  & 8 & 745 & 7487 & 119043 & 63.60 & 0.83 \\
         \bottomrule
     \end{tabular}
     \label{tab:dataset_statistics}
@@ -287,7 +287,7 @@ The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16
         RL-AP-GCN & 20.23 \\
         Ponder-AP-GCN & 8.77 \\
         Gumbel-AP-GCN & 11.49 \\
-        Co-AP-GCN &  \\
+        CoGCN &  \\
         AP-GCN replication & 7.63  \\
         \midrule
         Total &  \\
@@ -312,7 +312,7 @@ The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16
         \texttt{RL-AP-GCN} &$74.66 \pm 0.30$&$81.63 \pm 1.43$&$77.18 \pm 0.44$&$88.32 \pm 0.45$&$79.97 \pm 0.56$&$88.88 \pm 0.40$   \\
         \texttt{Ponder-AP-GCN} &$74.80 \pm 0.33$&$82.14 \pm 0.28$&$76.37 \pm 0.43$&$91.29 \pm 0.12$&$83.41 \pm 0.27$&$91.28 \pm 0.23$  \\
         \texttt{Gumbel-AP-GCN} &$70.12 \pm 1.43$&$70.86 \pm 2.50$&$76.85 \pm 0.41$&$87.56 \pm 0.41$&$79.13 \pm 0.55$&$89.22 \pm 0.39$  \\
-        \texttt{Co-AP-GCN}  \\
+        \texttt{CoGCN}  \\
         \texttt{AP-GCN replication} &$75.87 \pm 0.27$&$83.69 \pm 0.34$&$78.97 \pm 0.41$&$91.65 \pm 0.13$&$83.25 \pm 0.34$&$90.69 \pm 0.32$        \\
         \midrule
         \texttt{AP-GCN} & $76.12 \pm 0.24$ & $85.71 \pm 0.22$ & $79.80 \pm 0.34$ & $92.62 \pm 0.07$ & $85.18 \pm 0.23$ & $92.05 \pm 0.22$\\
@@ -331,7 +331,7 @@ The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16
         \texttt{RL-AP-GCN} &$169.0$&$161.6$&$221.4$&$279.0$&$279.8$&$206.1$  \\
         \texttt{Ponder-AP-GCN} &$54.1$&$51.1$&$67.9$&$136.4$&$173.6$&$87.9$   \\
         \texttt{Gumbel-AP-GCN} &$81.5$&$84.8$&$84.9$&$157.3$&$188.8$&$112.5$   \\
-        \texttt{Co-AP-GCN}  \\
+        \texttt{CoGCN}  \\
         \texttt{AP-GCN replication} &$48.1$&$51.5$&$79.1$&$117.5$&$113.5$&$78.6$  \\
         \midrule
         \texttt{AP-GCN} & $32.4$ & $36.2$ & $42.0$ & $100.3$ & $76.7$ & $50.0$ \\
@@ -342,13 +342,13 @@ The experiments were conducted on a MacBook Pro with an Apple M2 Pro Chip and 16
 
 \textcolor{red}{Use figures, plots and tables (like \autoref{tab:table}) to present your results in a nice and readable way.}
 
-We report the results of our experiments with the AP-GCN, Ponder-AP-GCN, RL-AP-GCN, and Co-AP-GCN architectures. In \autoref{tab:time-per-epoch}, we report the average training time per epoch for each model architecture. TODO: comment it 
+We report the results of our experiments with the AP-GCN, Ponder-AP-GCN, RL-AP-GCN, and CoGCN architectures. In \autoref{tab:time-per-epoch}, we report the average training time per epoch for each model architecture. TODO: comment it 
 
 \autoref{tab:accuracy} shows the average accuracy, with uncertainties showing the 95\% confidence level calculated by bootstrapping. The uncertainty is defined as the larger absolute difference between the mean and the 2.5th or 97.5th percentile of the bootstrap distribution. This follows the code in the Jupyter notebook provided by Spinelli et al.  TODO: Comment it
 
-In \autoref{fig:density-distribution} we report the distribution of the halting steps, i.e., the steps at which each node halts for each model architecture. Since we have data from 100 runs per model architecture, we first average the halting steps for each node over the 100 runs and then plot the distribution obtained using kernel density estimation (KDE) over these averaged halting steps per node. Note that because of the averaging and the KDE there can be probability mass at non-integer values even though in reality all the models can only halt at an integer number of steps. This approach follows the methodology used by Spinelli et al. TODO: comment it
+In \autoref{fig:density-distribution} we report the distribution of the halting steps, i.e., the steps at which each node halts for each model architecture. Since we have data from 100 runs per model architecture, we first average the halting steps for each node over the 100 runs and then plot the distribution obtained using kernel density estimation (KDE) over these averaged halting steps per node. Note that because of the averaging and the KDE there can be probability mass at non-integer values even though in reality all the models can only halt at an integer number of steps. This approach follows the methodology used by Spinelli et al. The step distribution for AP-GCN has a spike for the MS-Academic (ca. 2.6) and A.Computer (ca. 3.9) datasets at around 2 steps. All other models do not show such pronounced spikes. Furthermore,  the density distributions of different datasets under AP-GCN differ significantly from those of other model architectures, where the peaks of the distributions are typically closer together. In Gumbel-AP-GCN the densities for all datasets are almost identical and centered around 3.5 @Jonathan what could be problem. An important result is that the datasets do not enforce a certain step distribution independent of the model architecture. The reason for this could be that the optimal number of message passing iterations per node depends on the behavior of the neighboring nodes. Consequently, we suspect that there might exist many good combinations of halting steps for a graph.
 
-\autoref{fig:steps-dist-steps-std} shows the distribution of the standard deviations per node over the 100 experiments for each dataset. A low median standard deviation is desirable since it shows that a model often returns similar halting steps for the same node over experiments with different seeds and weight initialization. Furthermore, it is desirable that the median standard deviation is consistent across the different datasets.  TODO: comment it
+\autoref{fig:steps-dist-steps-std} shows the distribution of the standard deviations per node over the 100 experiments for each dataset. A low median standard deviation is desirable since it shows that a model often returns similar halting steps for the same node over experiments with different seeds and weight initialization. Furthermore, it is desirable that the median standard deviation is consistent across the different datasets. AP-GCN tends to have a very low standard deviation per node. RL-AP-GCN has a high standard deviation per node for each dataset. Interestingly, the medians of the boxplots are almost identical (around 3.6). Ponder-AP-GCN has low median standard deviation per node in the Cora-ML, MS-Academic, A.Computer, and A.Photo datasets and high median standard deviation per node in the Citeseer and PubMed datasets. Gumbel-AP-GCN has a high standard deviation per node but still lower than RL-AP-GCN. 
 
 
 \subsection{AP-GCN}
@@ -359,7 +359,7 @@ In \autoref{fig:density-distribution} we report the distribution of the halting 
 
 \subsection{Gumbel-AP-GCN}
 
-\subsection{Co-AP-GCN}
+\subsection{CoGCN}
 
 \begin{figure*}[p]
     \centering
@@ -443,12 +443,12 @@ In \autoref{fig:density-distribution} we report the distribution of the halting 
     \end{minipage}
 \end{figure*}
 
-\begin{figure}
-        \centering
+\begin{figure*}[p]
+    \centering 
         \includegraphics[width=\textwidth]{Gumbel-AP-GCN_std_steps_per_node_boxplot.pdf}
-        \caption{}
+        \caption{Each figure shows the distribution of the proportion of nodes in a given state per layer of the CoGCN models for a dataset. }
         \label{fig:cooperative-result} 
-\end{figure}
+\end{figure*}
 
 
 \section{Discussion and conclusion}
@@ -485,5 +485,8 @@ We used the Adam optimizer with a learning rate of 0.01. The model incorporates 
 \subsection{Gumbel-AP-GCN}
 \label{lab:hyper-gumbel-gcn}
 We employed the Adam optimizer with a learning rate of 0.01. The model uses a dropout rate of 0.5, an edge dropout rate of 0.3, and 64 hidden units. Edge dropout was applied exclusively in the adaptive message propagation component. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the \texttt{A. Photo} and \texttt{A. Computer} datasets, where no regularization was used. We set $\beta$ to 0, indicating that the model learns without a geometric prior, rendering $\lambda_p$ irrelevant. During training we use a scheduler for $\tau$ with $\tau_{\text{initial}} = 10.0$, $\tau_{\text{warmup}} = 20.0$, $\tau_{\text{decay}} = 50.0$, and $\tau_{\text{final}} = 1.0$. During evaluation, $\tau$ was fixed at 0.01.
+
+\subsection{CoGNN}
+@Tobias
 
 \end{document}
