@@ -29,7 +29,6 @@ class RewardNormalizer:
 
 
 class RLAdaptiveProp(MessagePassing):
-    # TODO: What about self.total_epochs if forward() is called from the evaluation function?
     def __init__(self,
                  niter: int,
                  h_size: int,

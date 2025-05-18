@@ -1,3 +1,5 @@
+# Taken from Co-GNN authors
+
 # OFFICIAL LIBRARY IMPORTS ------------------------------------------------------------------------
 
 from torch.nn import Linear, Parameter, Module

@@ -236,7 +236,6 @@ class SpinelliIntegrator(Integrator):
         model.train()
 
         # the authors do this by optimizing each 5 epochs.
-        # TODO: WHY?
         for param in model.prop.parameters():
             param.requires_grad = epoch % train_args.halting_step == 0
 

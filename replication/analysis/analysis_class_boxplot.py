@@ -10,7 +10,7 @@ import matplotlib as mpl
 import matplotlib.colors as mcolors
 
 from replication.constants import Model, ANALYSIS_FIGURE_OUTPUT_PATH, MATPLOTLIBPARAMS
-from replication.data import get_dataset, set_train_val_test_split
+from replication.data_loading.data import get_dataset, set_train_val_test_split
 from replication.dataset import Dataset
 from replication.model_classes.model_spinelli import get_spinelli_configuration
 
@@ -20,7 +20,7 @@ mpl.rcParams.update(MATPLOTLIBPARAMS)
 # Choose the datasets and model for which the boxplots per class are created
 DATASETS = [Dataset.CITESEER, Dataset.CORAML, Dataset.PUBMED, Dataset.MSACADEMIC, Dataset.ACOMPUTER, Dataset.APHOTO]
 # Does not work with Model.Cooperative_AP_GCN
-MODEL = Model.SPINELLI
+MODEL = Model.Gumbel_AP_GCN
 
 # Not necessary to change this
 PROJECT_NAME = f"{MODEL.label}"
@@ -100,7 +100,10 @@ def plot_boxplot_per_class(steps_per_dataset: Dict[str, List[List[int]]], model_
                               )
 
         for patch in boxplot["boxes"]:
-            patch.set_facecolor("lightblue")
+            color_value = Dataset.from_label(dataset_name).plot_color
+            color_rgba = mcolors.to_rgba(color_value, alpha=0.5)
+            patch.set_facecolor(color_rgba)
+            # patch.set_facecolor("lightblue")
 
         plt.ylabel("Halting Step")
         plt.xlabel("Class")

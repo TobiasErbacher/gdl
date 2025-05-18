@@ -163,6 +163,7 @@ def main():
     if model_name == Model.SPINELLI.label:
         print(f"Running for propagation penalties: {prop_penalties}")
 
+    # This outermost loop is not used in our analysis since we did not investigate different propagation penalties for AP-GCN
     for prop_penalty in prop_penalties:
         if model_name == Model.SPINELLI.label:
             model_args.prop_penalty = prop_penalty

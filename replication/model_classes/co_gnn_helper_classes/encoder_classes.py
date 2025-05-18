@@ -1,3 +1,5 @@
+# Taken from Co-GNN authors
+
 # OFFICIAL LIBRARY IMPORTS ------------------------------------------------------------------------
 
 from enum import Enum, auto

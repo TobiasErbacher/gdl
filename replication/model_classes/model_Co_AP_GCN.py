@@ -1,13 +1,11 @@
 from typing import Tuple
 
-import math
 import numpy as np
 import torch
 from torch import Tensor
-from torch_geometric.typing import OptTensor, Adj
 from torch.nn import CrossEntropyLoss
+from torch_geometric.typing import OptTensor, Adj
 
-from replication.dataset import Dataset
 from replication.model_classes.co_gnn_helper_classes.encoder_classes import DataSetEncoders
 from replication.model_classes.co_gnn_helper_classes.type_classes import ModelType, ActivationType
 from replication.model_classes.interfaces import Integrator, TrainArgs, EvalArgs, ModelArgs

@@ -22,7 +22,7 @@ The `benchmark.py` script will generate a separate wandb project for each model.
 
 Subsequently, we list the commands to execute all the experiments to replicate the results of our report. Each execution of the command generates 100 runs in wandb (20 seeds * 5 random weight initializations).
 
-Below are the commands to run the `benchmark.py` script for our implementation of AP-GCN as described in the paper by Spinelli et al.:
+Below are the commands to run the `benchmark.py` script for our implementation of the AP-GCN as described in the paper by Spinelli et al.:
 * --dataset=Citeseer --model=Spinelli 
 * --dataset=Cora-ML --model=Spinelli
 * --dataset=PubMed --model=Spinelli 
@@ -30,7 +30,7 @@ Below are the commands to run the `benchmark.py` script for our implementation o
 * --dataset=A.Computer --model=Spinelli
 * --dataset=A.Photo --model=Spinelli
 
-Below are the commands to run the `benchmark.py` script for RL-AP-GCN:
+Below are the commands to run the `benchmark.py` script for the RL-AP-GCN:
 * --dataset=Citeseer --model=RL-AP-GCN 
 * --dataset=Cora-ML --model=RL-AP-GCN  
 * --dataset=PubMed --model=RL-AP-GCN  
@@ -38,7 +38,7 @@ Below are the commands to run the `benchmark.py` script for RL-AP-GCN:
 * --dataset=A.Computer --model=RL-AP-GCN  
 * --dataset=A.Photo --model=RL-AP-GCN  
 
-Below are the commands to run the `benchmark.py` script for Ponder-AP-GCN:
+Below are the commands to run the `benchmark.py` script for the Ponder-AP-GCN:
 * --dataset=Citeseer --model=Ponder-AP-GCN 
 * --dataset=Cora-ML --model=Ponder-AP-GCN 
 * --dataset=PubMed --model=Ponder-AP-GCN 
@@ -46,7 +46,15 @@ Below are the commands to run the `benchmark.py` script for Ponder-AP-GCN:
 * --dataset=A.Computer --model=Ponder-AP-GCN 
 * --dataset=A.Photo --model=Ponder-AP-GCN 
 
-Below are the commands to run the `benchmark.py` script for Gumbel-AP-GCN:
+Below are the commands to run the `benchmark.py` script for the Gumbel-AP-GCN:
+* --dataset=Citeseer --model=Gumbel-AP-GCN 
+* --dataset=Cora-ML --model=Gumbel-AP-GCN 
+* --dataset=PubMed --model=Gumbel-AP-GCN 
+* --dataset=MS-Academic --model=Gumbel-AP-GCN 
+* --dataset=A.Computer --model=Gumbel-AP-GCN 
+* --dataset=A.Photo --model=Gumbel-AP-GCN
+
+Below are the commands to run the `benchmark.py` script for the Cooperative-AP-GCN:
 * --dataset=Citeseer --model=Gumbel-AP-GCN 
 * --dataset=Cora-ML --model=Gumbel-AP-GCN 
 * --dataset=PubMed --model=Gumbel-AP-GCN 

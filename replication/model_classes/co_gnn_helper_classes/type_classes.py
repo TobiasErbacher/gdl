@@ -1,3 +1,5 @@
+# Taken from Co-GNN authors
+
 # OFFICIAL LIBRARY IMPORTS ------------------------------------------------------------------------
 from torch import from_numpy, tensor
 from torch.nn import Module, ReLU, GELU, CrossEntropyLoss

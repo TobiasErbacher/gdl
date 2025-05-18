@@ -89,7 +89,6 @@ class Gumbel_AP_GCN(nn.Module):
 
         return predictions, p
 
-    # TODO (note to myself): Large diff to Ponder variant how loss is calculated
     def compute_loss(self, predictions, p, target, tau):
         """Compute loss using Gumbel-softmax sample during training"""
         # sample a halting step using Gumbel-softmax
