@@ -495,6 +495,47 @@ We employed the Adam optimizer with a learning rate of 0.01. The model uses a dr
 
 \subsection{Co-GCN}
 \label{lab:hyper-Co-GCN}
-@Tobias (see bottom of model file in replication folder)
+For this approach, in all experiments we set the optimizer to be Adam with a learning rate of $0.005$ and a weight decay of $0.003$. During training, we did not perform gradient clipping but left that as an option in the code. Apart from this, the hyperparameters for the temperature, environment and action networks are shown in \autoref{tab:cognn-temp-params} 
+
+\begin{table}[h]
+    \small\sf\centering
+    \caption{Co-GCN Hyperparameters.}
+    \begin{tabular}{ll}
+        \toprule
+        Parameter & Value \\
+        \midrule
+        \multicolumn{2}{c}{Temperature Network} \\
+        \midrule
+        $\tau$ (if fixed) & $0.5$ \\
+        Learnable Temperature & \texttt{True} \\
+        Model Type & \texttt{GCN} \\
+        $\tau_{0}$ & $0.5$ \\
+        \texttt{GIN MLP} Function & \texttt{None} \\
+        \midrule
+        \multicolumn{2}{c}{Action Network} \\
+        \midrule
+        Model Type & \texttt{GCN} \\
+        Feature Dimension & $64$ \\
+        \# Message Passing (Hidden) Layers & $2$ \\
+        Activation Function & \texttt{ReLU} \\
+        Dropout Probability & $0.5$ \\
+        \texttt{GIN MLP} Function & \texttt{None} \\
+        \midrule
+        \multicolumn{2}{c}{Environment Network} \\
+        \midrule
+        Model Type & \texttt{GCN} \\
+        Feature Dimension & $32$ \\
+        \# Message Passing (Hidden) Layers & $3$ \\
+        \# Decoder Layers & $1$ \\
+        Activation Function & \texttt{ReLU} \\
+        Dropout Probability & $0.5$ \\
+        Layer Normalization & \texttt{True} \\
+        Residual Connections & \texttt{False} \\
+        Dataset Encoder & \texttt{None} \\
+        \texttt{GIN MLP} Function & \texttt{None} \\
+        \bottomrule 
+    \end{tabular}
+    \label{tab:cognn-temp-params}
+\end{table}
 
 \end{document}
