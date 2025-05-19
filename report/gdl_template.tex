@@ -469,8 +469,6 @@ For Co-GCN, future work could explore modifying the architecture to share the en
 \twocolumn
 
 
-
-
 \clearpage
 % Bibliography
 \bibliography{bibliography}
@@ -511,7 +509,6 @@ For this approach, in all experiments we set the optimizer to be Adam with a lea
         \midrule
         \multicolumn{2}{c}{Temperature Network} \\
         \midrule
-        $\tau$ (if fixed) & $0.5$ \\
         Learnable Temperature & \texttt{True} \\
         Model Type & \texttt{GCN} \\
         $\tau_{0}$ & $0.5$ \\
@@ -520,7 +517,7 @@ For this approach, in all experiments we set the optimizer to be Adam with a lea
         \multicolumn{2}{c}{Action Network} \\
         \midrule
         Model Type & \texttt{GCN} \\
-        Feature Dimension & $64$ \\
+        Hidden Units & $64$ \\
         \# Message Passing (Hidden) Layers & $2$ \\
         Activation Function & \texttt{ReLU} \\
         Dropout Probability & $0.5$ \\
@@ -529,7 +526,7 @@ For this approach, in all experiments we set the optimizer to be Adam with a lea
         \multicolumn{2}{c}{Environment Network} \\
         \midrule
         Model Type & \texttt{GCN} \\
-        Feature Dimension & $32$ \\
+        Hidden Units & $32$ \\
         \# Message Passing (Hidden) Layers & $3$ \\
         \# Decoder Layers & $1$ \\
         Activation Function & \texttt{ReLU} \\
