@@ -18,7 +18,7 @@
 \flushbottom
 \frenchspacing
 
-\usepackage[text={190mm,258mm},%
+\usepackage[text={192mm,258mm},%
 papersize={210mm,297mm},%
 columnsep=12pt,%
 headsep=21pt,%
@@ -200,11 +200,11 @@ centering]{geometry}
 \@bls=\baselineskip
 
 \renewcommand\section{\@startsection {section}{1}{\z@}%
-                                   {1.2\@bls  plus .3\@bls minus .1\@bls}%
+                                   {0.7\@bls  plus .3\@bls minus .1\@bls}%
                                    {5pt\@afterindentfalse}%
                                    {\sf\large\bfseries\raggedright}}
 \renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
-                                     {0.9\@bls plus .3\@bls minus .1\@bls}%
+                                     {0.5\@bls plus .3\@bls minus .1\@bls}%
                                      {4pt\@afterindentfalse}%
                                      {\sf\bfseries\raggedright}}
 \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
