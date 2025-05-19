@@ -64,3 +64,6 @@ Below are the commands to run the `benchmark.py` script for the Cooperative-AP-G
 
 ### ./report
 The `./report` directory contains the LaTeX sources and figures for generating the report.
+
+### ./CoGCN
+Inside the `./CoGCN` directory, all the code regarding the experimentation with the Co-GCN (Cooperative Graph Neural Networks with GCNs) is located. It contains the simplified version (.ipynb and .py files) used for integration with the remaining codebase, as well as the directory that was created to contain the code written during the adaptation of the original authors' code.
