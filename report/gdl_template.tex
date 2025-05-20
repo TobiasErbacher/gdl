@@ -183,7 +183,7 @@ The Gumbel-AP-GCN architecture is based on the Ponder-AP-GCN architecture but in
 Therefore, $\tau$ = $\tau_{\text{initial}}$ during \textit{warmup} period, $\tau$ = $\tau_{\text{final}}$ after \textit{warmup} and \textit{decay}. Between these two phases, $\tau$ is defined as follows:
 
 \begin{equation}
-\tau = \tau_{\text{initial}} - \frac{\text{epoch} - \tau_{\text{warmup}}}{\tau_{\text{decay}}}  * (\tau_{\text{initial}} - \tau_{\text{final}})
+\tau = \tau_{\text{initial}} - \frac{\text{epoch} - \tau_{\text{warmup}}}{\tau_{\text{decay}}}  \cdot (\tau_{\text{initial}} - \tau_{\text{final}})
 \end{equation}
 
 Instead of computing the expected loss over all halting steps like in Ponder-AP-GCN, we compute it from the output corresponding to the sampled step $h_i$:
