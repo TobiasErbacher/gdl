@@ -1,7 +1,7 @@
 # AP-GCN Revisited: Replication and Alternative Approaches for Adaptive Propagation in Graph Neural Networks
 Authors: Jonatan Bella, Tobias Erbacher, Jonas Knupp
 
-This repository contains the codebase and LaTeX sources for the replication study of the paper [Adaptive Propagation Graph Convolutional Network](https://arxiv.org/abs/2002.10306). Spinelli et al. provide some code in their [GitHub](https://github.com/spindro/AP-GCN) repository. This study was conducted as part of the **Graph Deep Learning** course at Università della Svizzera italiana in the spring semester 2025.
+This repository contains the codebase and LaTeX sources for the replication study of the paper [Adaptive Propagation Graph Convolutional Network](https://arxiv.org/abs/2002.10306). Spinelli et al. provide some code in their [GitHub](https://github.com/spindro/AP-GCN) repository. This study was conducted as part of the Graph Deep Learning course at Università della Svizzera italiana in the spring semester 2025.
 
 ## Codebase Structure
 This section describes the structure of the codebase.
