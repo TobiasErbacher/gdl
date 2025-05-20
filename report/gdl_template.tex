@@ -75,10 +75,10 @@ The proposed Adaptive Propagation GCN (AP-GCN) enables each node in the graph to
 A classifier is added to each node that predicts, based on the hidden embedding of a node after $k$ message passing steps, whether the propagation should stop. That is, the classifier predicts whether a node should stop aggregating information from its neighbors after $k$ message passing steps. The output of the classifier, $h^k_i$, is the probability the propagation should stop for node $i$ after having performed $k$ steps of message passing.
 
 \begin{equation}
-h^k_i = \sigma(\textbf{q}\textbf{z}^k_i + q)
+h^k_i = \sigma(\textbf{a}\textbf{z}^k_i + b)
 \end{equation}
 
-\noindent $\textbf{q}$ and $q$ are trainable parameters and are shared between all nodes. There are two ways the propagation can stop. First, the propagation stops if the number of propagations reaches a predefined maximum number of allowed steps $T$. Second, the propagation stops when the propagation budget has been used up. The budget is defined as $1-\epsilon$ where $\epsilon$ is a hyperparameter set to a small value. When $k=K_i$ the budget for node $i$ has been reached after $k$ iterations and the propagation stops. $K_i$, the last permitted step before the budget is used up, is defined as:
+\noindent $\textbf{a}$ and $b$ are trainable parameters and are shared between all nodes. There are two ways the propagation can stop. First, the propagation stops if the number of propagations reaches a predefined maximum number of allowed steps $T$. Second, the propagation stops when the propagation budget has been used up. The budget is defined as $1-\epsilon$ where $\epsilon$ is a hyperparameter set to a small value. When $k=K_i$ the budget for node $i$ has been reached after $k$ iterations and the propagation stops. $K_i$, the last permitted step before the budget is used up, is defined as:
 
 \begin{equation}
     K_i = \argmin_{k} \sum_{k=1}^{k} h_i^k \geq 1-\epsilon
@@ -158,7 +158,7 @@ Strongly inspired by PonderNet \cite{banino2021}, we adopted its core ideas to i
 p_i^k = \lambda_i^k \prod_{j=1}^{k-1} (1-\lambda_i^j)
 \end{equation}
 
-\noindent which is similar to the geometric distribution but with variable $\lambda$. This would be a valid distribution if we integrated over all possible message passing steps, which is infeasible in practice. For this reason, we define a maximum number of propagation steps $T$ and assign all remaining probability to the last step. This ensures that the $\{p_i^k\}$ for $k \in \{1,2,...,T\}$ sum to 1. The embedding for node $i$ and therefore implicitly also how many message passing steps are done is then sampled from the random variable $\mathcal{Z}_i$ with probability density distribution $P(\mathcal{Z}_i=\hat{\mathbf{z}}_i^k) = p_i^k$.
+\noindent which is similar to the geometric distribution but with variable $\lambda$. This would be a valid distribution if we integrated over all possible message passing steps, which is infeasible in practice. For this reason, we define a maximum number of propagation steps $T$ and assign all remaining probability to the last step. This ensures that the $\{p_i^k\}$ for $k = \in \{1,2,...,T\}$ sum to 1. The embedding for node $i$ and therefore implicitly also how many message passing steps are done is then sampled from the random variable $\mathcal{Z}_i$ with probability density distribution $P(\mathcal{Z}_i=\hat{\mathbf{z}}_i^k) = p_i^k$.
 
 The model is trained end-to-end by minimizing the loss function that consists of a sum of two terms, the construction loss and the regularization loss, weighted by the hyperparameter $\beta$:
 
@@ -198,7 +198,7 @@ Instead of computing the expected loss over all halting steps like in Ponder-AP-
 The inference is implemented similarly to the training. A halting step is sampled using the GumbelSoftmax function and the output corresponding to that halting step is returned. As in the Ponder-AP-GCN, the inference could be implemented more efficiently using sequential Bernoulli sampling.
 
 \subsection{Co-GCN}
-The Cooperative Graph Neural Network (Co-GNN) \cite{finkelshtein2024} architecture is different from the other previously mentioned architectures in the way that we allow a different type of flexibility in message passing. In particular, we train a policy that decides which state to assign to a node --- Standard ($S$), Broadcast ($B$), Listen ($L$), or Isolate ($I$). These states can be reassigned at each message passing step, so a state that previously was in \textsc{Isolate} could become \textsc{Standard} for the next message passing step, and all combinations thereof. In a sense, the action network modifies the graph in each step, where undirected edges may become directed or simply nonexistent, see \autoref{fig:cognn-actions}.  In the Standard state, a node both broadcasts to neighbors that are in the Listen state and listens to neighbors that are in the Broadcast state. In the Listen state, the node only listens to neighbors that are broadcasting. In the Broadcast state, the node only broadcasts to neighbors that are listening. In the Isolate state, the node neither broadcasts nor listens.
+The Cooperative Graph Neural Network (Co-GNN) \cite{finkelshtein2024} architecture is different from the other previously mentioned architectures in the way that we allow a different type of flexibility in message passing. In particular, we train a policy that decides which state to assign to a node --- Standard ($S$), Broadcast ($B$), Listen ($L$), or Isolate ($I$). These states can be reassigned at each message passing step, so a state that previously was in Isolate could become Standard for the next message passing step, and all combinations thereof. In a sense, the action network modifies the graph in each step, where undirected edges may become directed or simply nonexistent, see \autoref{fig:cognn-actions}. In the Standard state, a node both broadcasts to neighbors that are listening and listens to neighbors that are broadcasting. In the Listen state, the node only listens to neighbors that are broadcasting. In the Broadcast state, the node only broadcasts to neighbors that are listening. In the Isolate state, the node neither broadcasts nor listens.
 
 \begin{figure}[h!]
     \centering
@@ -274,7 +274,7 @@ We downloaded the Citeseer \cite{sen2008}, Cora-ML \cite{mccallum2000}, PubMed \
 \end{table}
 
 \subsection{Hyperparameters}
-In the experiments with AP-GCN we used the hyperparameters described in the paper by Spinelli et al. They are described in Appendix \ref{lab:hyper-ap-gcn}. The hyperparameters used in the experiments with RL-AP-GCN, Ponder-AP-GCN, Gumbel-AP-GCN, and Co-GCN are available in Appendices \ref{lab:hyper-rl-gcn}, \ref{lab:hyper-ponder-gcn}, \ref{lab:hyper-gumbel-gcn}, and \ref{lab:hyper-Co-GCN}. We did not perform systematic hyperparameter optimization for RL-AP-GCN, Ponder-AP-GCN, Gumbel-AP-GCN, and Co-GCN. Instead, we mostly tested each model on the Cora-ML dataset and once we obtained reasonably good hyperparameters we reused them for the other datasets. 
+In the experiments with AP-GCN we used the hyperparameters described in the paper by Spinelli et al. They are described in Appendix \ref{lab:hyper-ap-gcn}. In particular, we used the same propagation penalties as Spinelli et al. The hyperparameters used in the experiments with RL-AP-GCN, Ponder-AP-GCN, Gumbel-AP-GCN, and Co-GCN are available in Appendices \ref{lab:hyper-rl-gcn}, \ref{lab:hyper-ponder-gcn}, \ref{lab:hyper-gumbel-gcn}, and \ref{lab:hyper-Co-GCN}. We did not perform systematic hyperparameter optimization for RL-AP-GCN, Ponder-AP-GCN, Gumbel-AP-GCN, and Co-GCN. Instead, we mostly tested each model on the Cora-ML dataset and once we obtained reasonably good hyperparameters we reused them for the other datasets. 
 
 \subsection{Experimental setup}
 \label{sec:experimental-setup}
@@ -315,7 +315,7 @@ The experiments involving the adaptive propagation architectures were carried ou
 \section{Results}
 We report the results of our experiments with the AP-GCN, RL-AP-GCN, Ponder-AP-GCN, Gumbel-AP-GCN, and Co-GCN architectures. \autoref{tab:accuracy} shows the average accuracy, with uncertainties showing the 95\% confidence level calculated by bootstrapping. The uncertainty is defined as the larger absolute difference between the mean and the $2.5$th or $97.5$th percentile of the bootstrap distribution. This follows the code in the Jupyter notebook provided by Spinelli et al. The accuracies of the replicated AP-GCN are consistently lower than the ones reported by Spinelli et al. The largest difference of $2.02\%$ occurs on the Cora-ML dataset. Given that we did not use the exact same setup (library versions and seeds for the model initializations) as Spinelli et al. we think these differences are acceptable. 
 
-In \autoref{fig:density-distribution} we report the distribution of the halting steps, i.e., the steps at which each node halts for the adaptive propagation model architectures. Since we have data from 100 runs per model architecture, we first average the halting steps for each node over the 100 runs and then plot the distribution obtained using kernel density estimation (KDE) over these averaged halting steps per node. Note that because of the averaging and the KDE there can be probability mass at non-integer values even though in reality all the models can only halt at an integer number of steps. This approach follows the methodology used by Spinelli et al. The step distribution for AP-GCN has a spike for the MS-Academic (ca. 2.6) and A.Computer (ca. 3.9) datasets at around 2 steps. All other models do not show such pronounced spikes. Furthermore,  the density distributions of different datasets under AP-GCN differ significantly from those of other model architectures, where the peaks of the distributions are typically closer together. In Gumbel-AP-GCN the densities for all datasets are almost identical and centered around 3.5 steps. We believe that one reason behind this phenomenon is that it requires a more explorative set of parameters, with a higher $\tau$ initially. Since we did not make an extensive search for these hyperparameters, besides a hand-picked choice based on a few validation loss samples in an individual dataset, the results indicate that further exploration could increase the difference between the step distributions among the datasets. In fact, later tests reveal that a higher initial $\tau$ with a lower warmup period could be a better alternative to the set hyperparameters in our results.  
+In \autoref{fig:density-distribution}, we report the distribution of the halting steps, that is, the steps at which each node halts for the adaptive propagation model architectures. Since we have data from 100 runs per model architecture, we first average the halting steps over the 100 runs for each node and then plot the distribution obtained using kernel density estimation (KDE) over these averaged halting steps per node. Note that because of the averaging and the KDE there can be probability mass at non-integer values even though in reality all the models can only halt at an integer number of steps. This approach follows the methodology used by Spinelli et al. The step distribution for AP-GCN has a spike for the MS-Academic (ca. 2.6) and A.Computer (ca. 3.9) datasets at around 2 steps. All other models do not show such pronounced spikes. Furthermore,  the density distributions of different datasets under AP-GCN differ significantly from those of other model architectures, where the peaks of the distributions are typically closer together. In Gumbel-AP-GCN the densities for all datasets are almost identical and centered around 3.5 steps. We believe that one reason behind this phenomenon is that it requires a more explorative set of parameters with a higher initial $\tau$. Since we did not perform an extensive search for these hyperparameters, besides a hand-picked choice based on a few validation loss samples in an individual dataset, the results indicate that further exploration could increase the difference between the step distributions among the datasets. In fact, later tests reveal that a higher initial $\tau$ with a lower warmup period could be a better alternative to the set hyperparameters in our results.  
 An important result is that the datasets do not enforce a certain step distribution independent of the model architecture. The reason for this could be that the optimal number of message passing iterations per node depends on the behavior of the neighboring nodes. Consequently, we suspect that there might exist many good combinations of halting steps for a graph.
 
 \autoref{fig:steps-dist-steps-std} shows the distribution of the standard deviations of the halting steps per node over the 100 experiments for each dataset. A low median standard deviation is desirable since it shows that a model often returns similar halting steps for the same node over experiments with different seeds and weight initialization. Furthermore, it is desirable that the median standard deviation is consistent across the different datasets. AP-GCN tends to have a very low standard deviation per node. RL-AP-GCN has a high standard deviation per node for each dataset. Interestingly, the medians of the boxplots are almost identical (around 3.6). Ponder-AP-GCN has low median standard deviation per node in the Cora-ML, MS-Academic, A.Computer, and A.Photo datasets and high median standard deviation per node in the Citeseer and PubMed datasets. Gumbel-AP-GCN has a high standard deviation per node but still lower than RL-AP-GCN. 
@@ -325,13 +325,15 @@ For the Co-GCN we tracked how the nodes are distributed among the four possible 
 The average training time per epoch for each model is shown in \autoref{tab:time-per-epoch}. While the training times we obtained for AP-GCN differ slightly from those reported by Spinelli et al., this is likely due to differences in hardware; nonetheless, the values remain comparable. Across most datasets, Ponder-AP-GCN is nearly as fast as AP-GCN and even outperforms it on the Cora-ML and PubMed datasets. Unsurprisingly, RL-AP-GCN has the longest training times. This is due to the reinforcement learning implementation, which involves iterative, per-node calls to the policy and value networks at each step for every active node --- each followed by backpropagation through both networks. Additionally, RL-specific loss components further extend the training process, making each epoch particularly computationally intensive. Lastly, the variation in training time per epoch across datasets is more pronounced for Co-GCN than for AP-GCN.
 
 \section{Discussion and conclusion}
-Although AP-GCN performs well in practice, several of its design choices lack clear theoretical justification in our opinion. For example, Spinelli et al. refer to $h_i^k$ as the probability that a node should halt after $k$ iterations. However, this is not what actually happens in the model: A node halts only when its propagation budget is used up or the maximum number of steps is reached. For instance, assume we have $\mathbf{h}_i = [0.3, 0.4, 0.25]$ and a propagation budget of $0.9$. AP-GCN will not halt node $i$ with probability $0.3$ after the first step. In fact, it will never halt after the first step. It will only halt after the third step, once the budget is fully consumed. Similarly, the way embeddings are aggregated over steps in \autoref{eq:aggregate} lacks a clear theoretical foundation.
+Although AP-GCN performs well in practice, several of its design choices lack clear theoretical justification in our opinion. For example, Spinelli et al. refer to $h_i^k$ as the probability that a node should halt after $k$ iterations. However, this is not what actually happens in the model: A node halts only when its propagation budget is used up or the maximum number of steps is reached. For instance, assume we have $\mathbf{h}_i = [0.3, 0.4, 0.25]$ and a propagation budget of $0.9$. AP-GCN will not halt at node $i$ with probability $0.3$ after the first step. In fact, it will never halt after the first step. It will only halt after the third step, once the budget is fully consumed. Similarly, the way embeddings are aggregated over steps in \autoref{eq:aggregate} lacks a clear theoretical foundation.
 
 We particularly appreciate how seamlessly the PonderNet framework can be adopted to adaptive propagation within graph convolutional networks. Unlike AP-GCN, Ponder-AP-GCN rests on a solid theoretical basis. Although its empirical performance trails AP-GCN slightly, more systematic hyperparameter optimization could possibly allow Ponder-AP-GCN to surpass AP-GCN.
 
 Experiments with the RL-AP-GCN and Gumbel-AP-GCN architectures showed that competitive results can be achieved without explicitly incorporating a computation penalty. This suggests that these models are capable of identifying a suitable halting point by recognizing when additional message-passing steps yield diminishing returns.
 
 For Co-GCN, future work could explore modifying the architecture to share the environment network across steps, thereby reducing the overall parameter count and harnessing potential synergy effects.
+
+Lastly, training the models on datasets comprising a greater number of training instances would be interesting to account for intra-class variance.
 
 \begin{figure*}[p]
     \centering
@@ -370,7 +372,7 @@ For Co-GCN, future work could explore modifying the architecture to share the en
         \end{subfigure}
         
         \captionsetup{justification=centerlast}
-        \caption{Average density distribution of the halting steps for the five different model architectures for each dataset.}
+        \caption{Average density distribution of the halting steps for the adaptive propagation model architectures for each dataset.}
         \label{fig:density-distribution}
     \end{minipage}%
     \hfill
@@ -420,18 +422,18 @@ For Co-GCN, future work could explore modifying the architecture to share the en
 
 \begin{table}[h]
     \small\sf\centering
-    \caption{Average test set accuracies with 95\% confidence intervals, computed from 100 runs per model architecture using 20 random seeds and 5 different initial weight settings per seed.}
+    \caption{Average test set accuracies with 95\% confidence intervals, computed from 100 runs per model architecture using 20 random seeds and 5 different model initializations per seed.}
     \begin{tabular}{l c c c c c c}
         \toprule
         Model & Citeseer & Cora-ML & PubMed & MS-Academic & A.Computer & A.Photo\\
         \midrule
-        \texttt{RL-AP-GCN} &$74.66 \pm 0.30$&$81.63 \pm 1.43$&$77.18 \pm 0.44$&$88.32 \pm 0.45$&$79.97 \pm 0.56$&$88.88 \pm 0.40$   \\
-        \texttt{Ponder-AP-GCN} &$74.80 \pm 0.33$&$82.14 \pm 0.28$&$76.37 \pm 0.43$&$91.29 \pm 0.12$&$83.41 \pm 0.27$&$91.28 \pm 0.23$  \\
-        \texttt{Gumbel-AP-GCN} &$70.12 \pm 1.43$&$70.86 \pm 2.50$&$76.85 \pm 0.41$&$87.56 \pm 0.41$&$79.13 \pm 0.55$&$89.22 \pm 0.39$  \\
-        \texttt{Co-GCN} &$68.00 \pm 0.77$&$74.80 \pm 2.14$&$75.89 \pm 1.04$&$88.58 \pm 0.20$&$30.47 \pm 1.16$&$34.42 \pm 3.57$  \\
-        \texttt{AP-GCN replication} &$75.87 \pm 0.27$&$83.69 \pm 0.34$&$78.97 \pm 0.41$&$91.65 \pm 0.13$&$83.25 \pm 0.34$&$90.69 \pm 0.32$        \\
+        RL-AP-GCN &$74.66 \pm 0.30$&$81.63 \pm 1.43$&$77.18 \pm 0.44$&$88.32 \pm 0.45$&$79.97 \pm 0.56$&$88.88 \pm 0.40$   \\
+        Ponder-AP-GCN &$74.80 \pm 0.33$&$82.14 \pm 0.28$&$76.37 \pm 0.43$&$91.29 \pm 0.12$&$83.41 \pm 0.27$&$91.28 \pm 0.23$  \\
+        Gumbel-AP-GCN &$70.12 \pm 1.43$&$70.86 \pm 2.50$&$76.85 \pm 0.41$&$87.56 \pm 0.41$&$79.13 \pm 0.55$&$89.22 \pm 0.39$  \\
+        Co-GCN &$68.00 \pm 0.77$&$74.80 \pm 2.14$&$75.89 \pm 1.04$&$88.58 \pm 0.20$&$30.47 \pm 1.16$&$34.42 \pm 3.57$  \\
+        AP-GCN replication &$75.87 \pm 0.27$&$83.69 \pm 0.34$&$78.97 \pm 0.41$&$91.65 \pm 0.13$&$83.25 \pm 0.34$&$90.69 \pm 0.32$        \\
         \midrule
-        \texttt{AP-GCN} & $76.12 \pm 0.24$ & $85.71 \pm 0.22$ & $79.80 \pm 0.34$ & $92.62 \pm 0.07$ & $85.18 \pm 0.23$ & $92.05 \pm 0.22$\\
+        AP-GCN & $76.12 \pm 0.24$ & $85.71 \pm 0.22$ & $79.80 \pm 0.34$ & $92.62 \pm 0.07$ & $85.18 \pm 0.23$ & $92.05 \pm 0.22$\\
         \bottomrule
     \end{tabular}
     \label{tab:accuracy}
@@ -445,21 +447,20 @@ For Co-GCN, future work could explore modifying the architecture to share the en
 \end{figure}
 
 
-
 \begin{table}[h]
     \small\sf\centering
-    \caption{Average training time per epoch in milliseconds, computed from 100 runs per model using 20 random seeds and 5 different initial weight settings per seed.}
+    \caption{Average training time per epoch in milliseconds, computed from 100 runs per model using 20 random seeds and 5 different model initializations per seed.}
     \begin{tabular}{l c c c c c c}
         \toprule
         Model & Citeseer & Cora-ML & PubMed & MS-Academic & A.Computer & A.Photo   \\
         \midrule
-        \texttt{RL-AP-GCN} &$169.0$&$161.6$&$221.4$&$279.0$&$279.8$&$206.1$  \\
-        \texttt{Ponder-AP-GCN} &$54.1$&$51.1$&$67.9$&$136.4$&$173.6$&$87.9$   \\
-        \texttt{Gumbel-AP-GCN} &$81.5$&$84.8$&$84.9$&$157.3$&$188.8$&$112.5$   \\
-        \texttt{Co-GCN} &$52.4$&$52.4$&$213.5$&$131.6$&$290.4$&$236.0$  \\
-        \texttt{AP-GCN replication} &$48.1$&$51.5$&$79.1$&$117.5$&$113.5$&$78.6$  \\
+        RL-AP-GCN &$169.0$&$161.6$&$221.4$&$279.0$&$279.8$&$206.1$  \\
+        Ponder-AP-GCN &$54.1$&$51.1$&$67.9$&$136.4$&$173.6$&$87.9$   \\
+        Gumbel-AP-GCN &$81.5$&$84.8$&$84.9$&$157.3$&$188.8$&$112.5$   \\
+        Co-GCN &$52.4$&$52.4$&$213.5$&$131.6$&$290.4$&$236.0$  \\
+        AP-GCN replication &$48.1$&$51.5$&$79.1$&$117.5$&$113.5$&$78.6$  \\
         \midrule
-        \texttt{AP-GCN} & $32.4$ & $36.2$ & $42.0$ & $100.3$ & $76.7$ & $50.0$ \\
+        AP-GCN & $32.4$ & $36.2$ & $42.0$ & $100.3$ & $76.7$ & $50.0$ \\
         \bottomrule 
     \end{tabular}
     \label{tab:time-per-epoch}
@@ -482,19 +483,19 @@ The maximum number of steps $T$ was set to 10 for all experiments.
 
 \subsection{AP-GCN}
 \label{lab:hyper-ap-gcn}
-We use 2 feature transformation layers, a dropout rate of 0.5, 64 hidden units, and the Adam optimizer with learning rate 0.01. We applied $L2$ regularization with coefficient 0.008 on the parameters of the first layer. For the \texttt{A. Photo} and \texttt{A. Computer} no regularization was used.
+We use 2 feature transformation layers, a dropout rate of 0.5, 64 hidden units, and the Adam optimizer with learning rate 0.01. We applied $L2$ regularization with coefficient 0.008 on the parameters of the first layer. For the A. Photo and A. Computer no regularization was used.
 
 \subsection{RL-AP-GCN}
 \label{lab:hyper-rl-gcn}
-We used the Adam optimizer with a learning rate of 0.01. The model employs a dropout rate of 0.5 and 64 hidden units. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the \texttt{A. Photo} and \texttt{A. Computer} datasets, where no regularization was used. The entropy weight was set to 0.01, and the value weight to 0.5. Gradient norm clipping was applied across all model parameters with a maximum norm of 1.0. Additionally, we set the computation penalty to 0, used an exploration factor of 0.01, and did not employ any scheduling for the exploration penalty.
+We used the Adam optimizer with a learning rate of 0.01. The model employs a dropout rate of 0.5 and 64 hidden units. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the A. Photo and A. Computer datasets, where no regularization was used. The entropy weight was set to 0.01, and the value weight to 0.5. Gradient norm clipping was applied across all model parameters with a maximum norm of 1.0. Additionally, we set the computation penalty to 0, used an exploration factor of 0.01, and did not employ any scheduling for the exploration penalty.
 
 \subsection{Ponder-AP-GCN}
 \label{lab:hyper-ponder-gcn}
-We used the Adam optimizer with a learning rate of 0.01. The model incorporates a dropout rate of 0.5, an edge dropout rate of 0.3, and 64 hidden units. Edge dropout was applied only in the section focused on adaptive message propagation. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the \texttt{A. Photo} and \texttt{A. Computer} datasets, where no regularization was used. We set $\beta$ to 0.01 and $\lambda_p$ to 0.2. During inference, a temperature value of 5.0 was used.
+We used the Adam optimizer with a learning rate of 0.01. The model incorporates a dropout rate of 0.5, an edge dropout rate of 0.3, and 64 hidden units. Edge dropout was applied only in the section focused on adaptive message propagation. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the A. Photo and A. Computer datasets, where no regularization was used. We set $\beta$ to 0.01 and $\lambda_p$ to 0.2. During inference, a temperature value of 5.0 was used.
 
 \subsection{Gumbel-AP-GCN}
 \label{lab:hyper-gumbel-gcn}
-We employed the Adam optimizer with a learning rate of 0.01. The model uses a dropout rate of 0.5, an edge dropout rate of 0.3, and 64 hidden units. Edge dropout was applied exclusively in the adaptive message propagation component. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the \texttt{A. Photo} and \texttt{A. Computer} datasets, where no regularization was used. We set $\beta$ to 0, indicating that the model learns without a geometric prior, rendering $\lambda_p$ irrelevant. During training we use a scheduler for $\tau$ with $\tau_{\text{initial}} = 10.0$, $\tau_{\text{warmup}} = 20.0$, $\tau_{\text{decay}} = 50.0$, and $\tau_{\text{final}} = 1.0$. During evaluation, $\tau$ was fixed at 0.01.
+We employed the Adam optimizer with a learning rate of 0.01. The model uses a dropout rate of 0.5, an edge dropout rate of 0.3, and 64 hidden units. Edge dropout was applied exclusively in the adaptive message propagation component. $L_2$ regularization with a coefficient of 0.008 was applied to the parameters of the first layer, except for the A. Photo and A. Computer datasets, where no regularization was used. We set $\beta$ to 0, indicating that the model learns without a geometric prior, rendering $\lambda_p$ irrelevant. During training we use a scheduler for $\tau$ with $\tau_{\text{initial}} = 10.0$, $\tau_{\text{warmup}} = 20.0$, $\tau_{\text{decay}} = 50.0$, and $\tau_{\text{final}} = 1.0$. During evaluation, $\tau$ was fixed at 0.01.
 
 \subsection{Co-GCN}
 \label{lab:hyper-Co-GCN}
