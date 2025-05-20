@@ -11,9 +11,6 @@ from replication.model_classes.co_gnn_helper_classes.type_classes import ModelTy
 from replication.model_classes.interfaces import Integrator, TrainArgs, EvalArgs, ModelArgs
 
 
-# From Tobias main.ipynb
-
-
 def load_env_net(in_dim: int, out_dim: int, env_args: dict) -> torch.nn.ModuleList:
     env_dim = env_args["env_dim"]
     num_layers = env_args["num_layers"]

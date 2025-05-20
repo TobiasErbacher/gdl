@@ -10,9 +10,6 @@ from replication.dataset import Dataset
 from replication.model_classes.interfaces import TrainArgs, Integrator, EvalArgs, ModelArgs
 
 
-# From Jonathan RL_GUMBEL_GUMBELSAMPLING.ipynb
-
-
 class Gumbel_AP_GCN(nn.Module):
     def __init__(self, dataset, niter, dropout, beta, lambda_p, hidden):
         super(Gumbel_AP_GCN, self).__init__()

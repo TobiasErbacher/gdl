@@ -10,9 +10,6 @@ from replication.dataset import Dataset
 from replication.model_classes.interfaces import Integrator, EvalArgs, TrainArgs, ModelArgs
 
 
-# From Jonathan RL_GUMBEL_GUMBELSAMPLING.ipynb
-
-
 class Ponder_AP_GCN(nn.Module):
     """
     Args:

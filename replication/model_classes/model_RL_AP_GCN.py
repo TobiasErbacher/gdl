@@ -13,8 +13,6 @@ from replication.dataset import Dataset
 from replication.model_classes.interfaces import TrainArgs, ModelArgs, Integrator, EvalArgs
 
 
-# From Jonathan RL_GUMBEL_GUMBELSAMPLING.ipynb
-
 class RewardNormalizer:
     def __init__(self, size=100):
         self.returns = deque(maxlen=size)

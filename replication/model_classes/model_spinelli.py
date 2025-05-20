@@ -1,4 +1,3 @@
-# Mostly from Jonathan/APGCN_WITH_PLOTS with some changes
 import math
 import numpy as np
 
@@ -39,8 +38,8 @@ class AdaptivePropagation(MessagePassing):
 
     def reset_parameters(self):
         """
-        bias around 1/n+1 -> check my paper comments. it is easy to show that after passing
-        through the sigmoid, we get that the probability takes a value around 1/n+1
+        bias around 1/(n+1) -> check my paper comments. it is easy to show that after passing
+        through the sigmoid, we get that the probability takes a value around 1/(n+1)
         """
         self.halt.reset_parameters()
 
