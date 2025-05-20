@@ -200,7 +200,7 @@ centering]{geometry}
 \@bls=\baselineskip
 
 \renewcommand\section{\@startsection {section}{1}{\z@}%
-                                   {0.7\@bls  plus .3\@bls minus .1\@bls}%
+                                   {0.62\@bls  plus .3\@bls minus .1\@bls}%
                                    {5pt\@afterindentfalse}%
                                    {\sf\large\bfseries\raggedright}}
 \renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
